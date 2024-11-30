@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1732985931280
+current_stage: None
+description: ''
+last_updated_timestamp: 1732985931280
+name: latest
+run_id: bc433170304d4ea7a59840dc4aba7f52
+run_link: ''
+source: file:///Users/feliks/Documents/Faks/Diplomska/App/mlruns/586264776644289656/bc433170304d4ea7a59840dc4aba7f52/artifacts/model
+status: READY
+status_message: null
+storage_location: file:///Users/feliks/Documents/Faks/Diplomska/App/mlruns/586264776644289656/bc433170304d4ea7a59840dc4aba7f52/artifacts/model
+user_id: null
+version: 1

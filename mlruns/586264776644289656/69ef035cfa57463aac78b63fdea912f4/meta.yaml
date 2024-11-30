@@ -1,0 +1,16 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlruns/586264776644289656/69ef035cfa57463aac78b63fdea912f4/artifacts
+deleted_time: 1732984962678
+end_time: 1732984672380
+entry_point_name: ''
+experiment_id: '586264776644289656'
+lifecycle_stage: deleted
+run_id: 69ef035cfa57463aac78b63fdea912f4
+run_name: Neural Network MAE Run 10
+run_uuid: 69ef035cfa57463aac78b63fdea912f4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732984666004
+status: 3
+tags: []
+user_id: feliks

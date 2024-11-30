@@ -1,0 +1,16 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlruns/586264776644289656/a80133b85d0f430db4a4e9f9845cb19e/artifacts
+deleted_time: 1732984962669
+end_time: 1732984713033
+entry_point_name: ''
+experiment_id: '586264776644289656'
+lifecycle_stage: deleted
+run_id: a80133b85d0f430db4a4e9f9845cb19e
+run_name: Neural Network MAE Run 17
+run_uuid: a80133b85d0f430db4a4e9f9845cb19e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732984707963
+status: 3
+tags: []
+user_id: feliks
