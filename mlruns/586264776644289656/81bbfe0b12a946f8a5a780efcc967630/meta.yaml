@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlruns/586264776644289656/81bbfe0b12a946f8a5a780efcc967630/artifacts
+end_time: 1732972096534
+entry_point_name: ''
+experiment_id: '586264776644289656'
+lifecycle_stage: active
+run_id: 81bbfe0b12a946f8a5a780efcc967630
+run_name: Decision Tree Regressor - Run 5
+run_uuid: 81bbfe0b12a946f8a5a780efcc967630
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732972095019
+status: 3
+tags: []
+user_id: feliks

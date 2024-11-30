@@ -1,0 +1,16 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlflow_tracking/169963907851320903/b6ac88c4784048b7aac47c66728505b5/artifacts
+deleted_time: 1732964506777
+end_time: 1732875046534
+entry_point_name: ''
+experiment_id: '169963907851320903'
+lifecycle_stage: deleted
+run_id: b6ac88c4784048b7aac47c66728505b5
+run_name: Ridge Regression
+run_uuid: b6ac88c4784048b7aac47c66728505b5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732875039153
+status: 3
+tags: []
+user_id: feliks

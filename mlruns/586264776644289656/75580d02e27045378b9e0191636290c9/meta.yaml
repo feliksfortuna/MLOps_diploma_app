@@ -1,0 +1,16 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlruns/586264776644289656/75580d02e27045378b9e0191636290c9/artifacts
+deleted_time: 1732972724434
+end_time: 1732972607497
+entry_point_name: ''
+experiment_id: '586264776644289656'
+lifecycle_stage: deleted
+run_id: 75580d02e27045378b9e0191636290c9
+run_name: Neural Network R2 Trial 8
+run_uuid: 75580d02e27045378b9e0191636290c9
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732972603038
+status: 3
+tags: []
+user_id: feliks

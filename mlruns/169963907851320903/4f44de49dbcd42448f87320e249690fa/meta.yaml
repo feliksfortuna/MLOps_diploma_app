@@ -1,0 +1,16 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlflow_tracking/169963907851320903/4f44de49dbcd42448f87320e249690fa/artifacts
+deleted_time: 1732964102233
+end_time: 1732880224046
+entry_point_name: ''
+experiment_id: '169963907851320903'
+lifecycle_stage: deleted
+run_id: 4f44de49dbcd42448f87320e249690fa
+run_name: PyTorch_RaceModel_trial_5
+run_uuid: 4f44de49dbcd42448f87320e249690fa
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732880214642
+status: 3
+tags: []
+user_id: feliks

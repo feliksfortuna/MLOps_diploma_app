@@ -1,0 +1,16 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlflow_tracking/169963907851320903/96421e5d27a74768a3e00bdd511af11f/artifacts
+deleted_time: 1732963941754
+end_time: 1732877932640
+entry_point_name: ''
+experiment_id: '169963907851320903'
+lifecycle_stage: deleted
+run_id: 96421e5d27a74768a3e00bdd511af11f
+run_name: Random Forest Regressor
+run_uuid: 96421e5d27a74768a3e00bdd511af11f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732877238644
+status: 4
+tags: []
+user_id: feliks

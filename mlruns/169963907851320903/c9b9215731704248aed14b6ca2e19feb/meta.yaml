@@ -1,0 +1,16 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlflow_tracking/169963907851320903/c9b9215731704248aed14b6ca2e19feb/artifacts
+deleted_time: 1732969731650
+end_time: 1732875366290
+entry_point_name: ''
+experiment_id: '169963907851320903'
+lifecycle_stage: deleted
+run_id: c9b9215731704248aed14b6ca2e19feb
+run_name: Lasso Regression
+run_uuid: c9b9215731704248aed14b6ca2e19feb
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732875357124
+status: 3
+tags: []
+user_id: feliks

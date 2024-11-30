@@ -1,0 +1,16 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlflow_tracking/169963907851320903/21b8ac6aab3142e3b9c36f2003929b98/artifacts
+deleted_time: 1732969731656
+end_time: 1732875333144
+entry_point_name: ''
+experiment_id: '169963907851320903'
+lifecycle_stage: deleted
+run_id: 21b8ac6aab3142e3b9c36f2003929b98
+run_name: Linear Regression
+run_uuid: 21b8ac6aab3142e3b9c36f2003929b98
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732875317240
+status: 3
+tags: []
+user_id: feliks

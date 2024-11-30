@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlruns/586264776644289656/4fde95b96f454c1d8ebaf02a62a69fd3/artifacts
+end_time: 1732972071622
+entry_point_name: ''
+experiment_id: '586264776644289656'
+lifecycle_stage: active
+run_id: 4fde95b96f454c1d8ebaf02a62a69fd3
+run_name: Lasso Regression - Run 3
+run_uuid: 4fde95b96f454c1d8ebaf02a62a69fd3
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732972070145
+status: 3
+tags: []
+user_id: feliks

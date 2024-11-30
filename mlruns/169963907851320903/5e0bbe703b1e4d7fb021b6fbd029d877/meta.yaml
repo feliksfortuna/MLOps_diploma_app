@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlflow_tracking/169963907851320903/5e0bbe703b1e4d7fb021b6fbd029d877/artifacts
+end_time: 1732968445572
+entry_point_name: ''
+experiment_id: '169963907851320903'
+lifecycle_stage: active
+run_id: 5e0bbe703b1e4d7fb021b6fbd029d877
+run_name: Decision Tree Regressor - Run 7
+run_uuid: 5e0bbe703b1e4d7fb021b6fbd029d877
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732968443854
+status: 3
+tags: []
+user_id: feliks

@@ -1,0 +1,16 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlflow_tracking/169963907851320903/b31e999404ca4022b0e5304142cd61c5/artifacts
+deleted_time: 1732967631351
+end_time: 1732965328871
+entry_point_name: ''
+experiment_id: '169963907851320903'
+lifecycle_stage: deleted
+run_id: b31e999404ca4022b0e5304142cd61c5
+run_name: Neural Network Trial 0
+run_uuid: b31e999404ca4022b0e5304142cd61c5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732965273474
+status: 4
+tags: []
+user_id: feliks

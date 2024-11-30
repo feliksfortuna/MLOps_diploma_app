@@ -1,0 +1,16 @@
+artifact_uri: file:///Users/feliks/Documents/Faks/Diplomska/App/mlflow_tracking/169963907851320903/6f18d767f1de4e5090cd39c80bdac194/artifacts
+deleted_time: 1732963941754
+end_time: null
+entry_point_name: ''
+experiment_id: '169963907851320903'
+lifecycle_stage: deleted
+run_id: 6f18d767f1de4e5090cd39c80bdac194
+run_name: LightGBM Regressor
+run_uuid: 6f18d767f1de4e5090cd39c80bdac194
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1732878455058
+status: 1
+tags: []
+user_id: feliks
