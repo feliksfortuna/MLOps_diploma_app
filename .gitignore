@@ -4,3 +4,10 @@
 # GCP CLI configuration
 gcloud init/
 .config/gcloud/
+
+# GCP mlflow configuration
+GCP/
+
+.env
+
+temp*
