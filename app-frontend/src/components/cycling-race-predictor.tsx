@@ -32,8 +32,8 @@ export default function CyclingRacePredictor() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary to-secondary p-4">
-      <div className="max-w-4xl mx-auto bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
+    <div className="min-h-screen bg-cover bg-center p-4">
+      <div className="max-w-4xl mx-auto bg-white/95 backdrop-blur-sm rounded-lg shadow-lg">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-center mb-6">Cycling Race Predictor</h2>
           
@@ -52,24 +52,25 @@ export default function CyclingRacePredictor() {
               </span>
             </button>
             {isOpen && (
-              <select
+              <ul
                 className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
-                size={races.length}
-                value={selectedRace}
-                onChange={(e) => handleRaceChange(e.target.value)}
+                tabIndex={-1}
+                role="listbox"
               >
                 {races.map((race) => (
-                  <option
+                  <li
                     key={race.id}
-                    value={race.id}
                     className={`cursor-default select-none relative py-2 pl-3 pr-9 hover:bg-primary hover:text-white ${
                       race.id === selectedRace ? 'bg-primary text-white' : 'text-gray-900'
                     }`}
+                    role="option"
+                    aria-selected={race.id === selectedRace}
+                    onClick={() => handleRaceChange(race.id)}
                   >
-                    {race.name}
-                  </option>
+                    <span className="block truncate">{race.name}</span>
+                  </li>
                 ))}
-              </select>
+              </ul>
             )}
           </div>
 

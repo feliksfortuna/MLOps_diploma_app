@@ -1,10 +1,11 @@
+import './globals.css'
 import Link from 'next/link'
 
 export default function WelcomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex flex-col items-center justify-center p-4 text-white">
-      <h1 className="text-4xl font-bold mb-4 text-center">Welcome to Cycling Race Predictor</h1>
-      <p className="text-xl mb-8 text-center max-w-2xl">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 text-white">
+      <h1 className="text-4xl font-bold mb-4 text-center text-highlight">Welcome to Cycling Race Predictor</h1>
+      <p className="text-xl mb-8 text-center max-w-2xl text-highlight">
         Discover the top cyclists and their winning chances in major races around the world.
       </p>
       <Link 
