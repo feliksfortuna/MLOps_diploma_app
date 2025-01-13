@@ -1,31 +1,32 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-import pandas as pd
-import mlflow.pyfunc
+import numpy as np
+import pickle
 
+# Initialize Flask app
 app = Flask(__name__)
-CORS(app)
 
-# Set the MLflow tracking URI to your local server
-mlflow.set_tracking_uri('http://127.0.0.1:5000')
-
-# Specify the registered model name
-model_name = 'latest' 
-
-# Load the latest version of the model from the specified stage
-model = mlflow.pyfunc.load_model(model_uri=f'models:/{model_name}/1')
+# Load the pickled model
+model_path = "./model/model.pkl"
+with open(model_path, 'rb') as f:
+    loaded_model = pickle.load(f)
 
 @app.route('/predict', methods=['POST'])
-async def predict():
-    # Get the data from the request
-    data = request.get_json(force=True)
-    data = pd.DataFrame(data, index=[0])
+def predict():
+    try:
+        # Parse JSON input
+        input_data = request.json["instances"]
+        
+        # Convert input to numpy array with dtype float32
+        input_array = np.array(input_data, dtype=np.float32)
+        
+        # Make prediction using the loaded model
+        prediction = loaded_model.predict(input_array)
+        
+        # Return the prediction as JSON
+        return jsonify({"predictions": prediction.tolist()})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
-    # Make a prediction
-    prediction = model.predict(data)
-
-    # Return the prediction
-    return jsonify(prediction.tolist())
-
-if __name__ == '__main__':
-    app.run(port=5001)
+# Run the Flask app
+if __name__ == "__main__":
+    app.run(host="localhost", port=6000, debug=True)
