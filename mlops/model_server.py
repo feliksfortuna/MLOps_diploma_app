@@ -6,7 +6,7 @@ app = Flask(__name__)
 CORS(app)
 
 @app.route('/redeploy', methods=['POST'])
-async def redeploy():
+def redeploy():
     # Get the index from the request
     data = request.get_json(force=True)
     index = data.get('index')
@@ -22,4 +22,4 @@ async def redeploy():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(port=5010)
+    app.run(host="0.0.0.0", port=5010)
