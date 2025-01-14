@@ -3,7 +3,7 @@
 # Variables
 PORT=6000
 APP="model_server:app"
-LOG_FILE="server.log"
+LOG_FILE="/home/bsc/MLOps_diploma_app/devops/server.log"
 
 # Function to stop existing Gunicorn process
 stop_server() {
