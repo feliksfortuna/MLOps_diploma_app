@@ -11,8 +11,16 @@ stop_server() {
     pid=$(lsof -t -i:$PORT -sTCP:LISTEN)
     if [ -n "$pid" ]; then
         kill -15 "$pid" && echo "Server stopped."
+        sleep 2  # Wait for the port to be released
     else
         echo "No server running on port $PORT."
+    fi
+    
+    # Double-check if the process is still running and force kill if necessary
+    if nc -z localhost $PORT; then
+        echo "Port $PORT is still in use. Forcibly killing the process..."
+        pkill -f "gunicorn -w 1 -b 0.0.0.0:$PORT" && echo "Forcibly killed the server."
+        sleep 2
     fi
 }
 
