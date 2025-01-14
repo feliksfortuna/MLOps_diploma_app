@@ -12,13 +12,18 @@ echo "$(date): Pulling latest changes from GitHub..." >> "$LOG_FILE"
 # Navigate to the repo and fetch the latest changes
 cd "$REPO_DIR" && git fetch origin main >> "$LOG_FILE" 2>&1
 
-# Check for changes in the target directory
-if git diff --name-only FETCH_HEAD HEAD | grep -q "^${TARGET_DIR}/"; then
+# Get the latest commit hash on the remote branch
+LATEST_REMOTE_COMMIT=$(git rev-parse origin/main)
+
+# Get the latest local commit hash before pulling
+LATEST_LOCAL_COMMIT=$(git rev-parse HEAD)
+
+# Check for changes in the target directory between the two commits
+if git diff --name-only "$LATEST_LOCAL_COMMIT" "$LATEST_REMOTE_COMMIT" | grep -q "^${TARGET_DIR}/"; then
     echo "$(date): Changes detected in the '${TARGET_DIR}' directory. Redeploying..." >> "$LOG_FILE"
     
     # Reset and pull the latest changes
-    git reset --hard HEAD >> "$LOG_FILE" 2>&1
-    git pull origin main >> "$LOG_FILE" 2>&1
+    git reset --hard origin/main >> "$LOG_FILE" 2>&1
     
     # Run the redeployment script
     bash "$REDEPLOY_SCRIPT" >> "$LOG_FILE" 2>&1
