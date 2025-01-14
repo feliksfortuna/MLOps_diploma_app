@@ -2,9 +2,9 @@
 
 # Variables
 REPO_DIR="/home/bsc/MLOps_diploma_app"
-LOG_FILE="webhook_redeploy.log"
+LOG_FILE="/home/bsc/MLOps_diploma_app/devops/webhook_redeploy.log"
 TARGET_DIR="devops"
-REDEPLOY_SCRIPT="./redeploy_model.sh"
+REDEPLOY_SCRIPT="/home/bsc/MLOps_diploma_app/devops/redeploy_model.sh"
 
 # Logging the start of the process
 echo "$(date): Pulling latest changes from GitHub..." >> "$LOG_FILE"
