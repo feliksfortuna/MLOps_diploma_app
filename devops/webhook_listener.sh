@@ -12,11 +12,6 @@ echo "$(date): Pulling latest changes from GitHub..." >> "$LOG_FILE"
 # Navigate to the repo and fetch the latest changes
 cd "$REPO_DIR" && git fetch origin main >> "$LOG_FILE" 2>&1
 
-# Store the list of changed files
-CHANGED_FILES=$(git diff --name-only FETCH_HEAD HEAD)
-echo "Changed files:" >> "$LOG_FILE"
-echo "$CHANGED_FILES" >> "$LOG_FILE"
-
 # Check for changes in the target directory
 if [[ "$CHANGED_FILES" == *"$TARGET_DIR/"* ]]; then
     echo "$(date): Changes detected in the '${TARGET_DIR}' directory. Redeploying..." >> "$LOG_FILE"
