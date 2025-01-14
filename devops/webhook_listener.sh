@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REPO_DIR="../MLOps_diploma_app"
+REPO_DIR="/home/bsc/MLOps_diploma_app"
 LOG_FILE="webhook_redeploy.log"
 TARGET_DIR="devops"
 
