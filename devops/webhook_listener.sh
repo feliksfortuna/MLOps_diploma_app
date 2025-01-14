@@ -14,7 +14,7 @@ cd "$REPO_DIR" && git fetch origin main >> "$LOG_FILE" 2>&1
 
 # Print git diff for debugging
 echo "Checking for changes..."
-git diff --name-only FETCH_HEAD HEAD
+git diff --name-only FETCH_HEAD HEAD | grep -q "^${TARGET_DIR}/"
 
 # Check for changes in the target directory
 if git diff --name-only FETCH_HEAD HEAD | grep -q "^${TARGET_DIR}/"; then
