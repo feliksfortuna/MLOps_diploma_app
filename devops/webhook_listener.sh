@@ -13,7 +13,7 @@ echo "$(date): Pulling latest changes from GitHub..." >> "$LOG_FILE"
 cd "$REPO_DIR" && git fetch origin main >> "$LOG_FILE" 2>&1
 
 # Check for changes in the target directory
-if git diff --name-only FETCH_HEAD HEAD | grep devops/; then
+if git diff --name-only FETCH_HEAD HEAD | grep devops; then
     echo "$(date): Changes detected in the '${TARGET_DIR}' directory. Redeploying..." >> "$LOG_FILE"
     
     # Reset and pull the latest changes
