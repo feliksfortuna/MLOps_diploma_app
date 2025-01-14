@@ -12,17 +12,8 @@ echo "$(date): Pulling latest changes from GitHub..." >> "$LOG_FILE"
 # Navigate to the repo and fetch the latest changes
 cd "$REPO_DIR" && git fetch origin main >> "$LOG_FILE" 2>&1
 
-echo "Changes:"
-git diff --name-only FETCH_HEAD HEAD
-
-if git diff --name-only FETCH_HEAD HEAD | grep devops; then
-    echo "Changes detected in '${TARGET_DIR}'"
-else
-    echo "No changes detected in '${TARGET_DIR}'"
-fi
-
 # Check for changes in the target directory
-if git diff --name-only FETCH_HEAD HEAD | grep -q "^${TARGET_DIR}\(/.*\)\?$"; then
+if git diff --name-only FETCH_HEAD HEAD | grep devops/; then
     echo "$(date): Changes detected in the '${TARGET_DIR}' directory. Redeploying..." >> "$LOG_FILE"
     
     # Reset and pull the latest changes
