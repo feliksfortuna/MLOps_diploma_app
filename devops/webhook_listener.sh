@@ -1,7 +1,7 @@
 #!/bin/bash
 
-REPO_DIR="/path/to/MLOps_diploma_app"
-LOG_FILE="/var/log/webhook_redeploy.log"
+REPO_DIR="../MLOps_diploma_app"
+LOG_FILE="webhook_redeploy.log"
 TARGET_DIR="devops"
 
 echo "$(date): Pulling latest changes from GitHub..." >> "$LOG_FILE"
@@ -15,7 +15,7 @@ if git diff --name-only FETCH_HEAD HEAD | grep -q "^${TARGET_DIR}/"; then
     git reset --hard HEAD >> "$LOG_FILE" 2>&1
     git pull origin main >> "$LOG_FILE" 2>&1
     
-    /path/to/redeploy_if_new_model.sh >> "$LOG_FILE" 2>&1
+    ./redeploy_model.sh >> "$LOG_FILE" 2>&1
     
     echo "$(date): Redeployment completed successfully." >> "$LOG_FILE"
 else
