@@ -16,7 +16,7 @@ echo "cahnges:"
 git diff --name-only FETCH_HEAD HEAD | grep devops
 
 # Check for changes in the target directory
-if git diff --name-only FETCH_HEAD HEAD | grep devops; then
+if git diff --name-only FETCH_HEAD HEAD | grep -q devops; then
     echo "$(date): Changes detected in the '${TARGET_DIR}' directory. Redeploying..." >> "$LOG_FILE"
     
     # Reset and pull the latest changes
