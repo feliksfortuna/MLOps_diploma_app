@@ -13,7 +13,13 @@ echo "$(date): Pulling latest changes from GitHub..." >> "$LOG_FILE"
 cd "$REPO_DIR" && git fetch origin main >> "$LOG_FILE" 2>&1
 
 echo "Changes:"
-git diff --name-only FETCH_HEAD HEAD | grep "^${TARGET_DIR}$"
+git diff --name-only FETCH_HEAD HEAD
+
+if git diff --name-only FETCH_HEAD HEAD | grep "^${TARGET_DIR}"; then
+    echo "Changes detected in '${TARGET_DIR}'"
+else
+    echo "No changes detected in '${TARGET_DIR}'"
+
 
 # Check for changes in the target directory
 if git diff --name-only FETCH_HEAD HEAD | grep -q "^${TARGET_DIR}\(/.*\)\?$"; then
