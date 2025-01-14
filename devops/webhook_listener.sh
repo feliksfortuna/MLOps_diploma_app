@@ -1,21 +1,27 @@
 #!/bin/bash
 
-REPO_DIR="/path/to/MLOps_diploma_app"
-LOG_FILE="/var/log/webhook_redeploy.log"
+# Variables
+REPO_DIR="/home/bsc/MLOps_diploma_app"
+LOG_FILE="webhook_redeploy.log"
 TARGET_DIR="devops"
+REDEPLOY_SCRIPT="./redeploy_model.sh"
 
+# Logging the start of the process
 echo "$(date): Pulling latest changes from GitHub..." >> "$LOG_FILE"
 
+# Navigate to the repo and fetch the latest changes
 cd "$REPO_DIR" && git fetch origin main >> "$LOG_FILE" 2>&1
 
-# Check if there are changes in the devops directory
+# Check for changes in the target directory
 if git diff --name-only FETCH_HEAD HEAD | grep -q "^${TARGET_DIR}/"; then
     echo "$(date): Changes detected in the '${TARGET_DIR}' directory. Redeploying..." >> "$LOG_FILE"
     
+    # Reset and pull the latest changes
     git reset --hard HEAD >> "$LOG_FILE" 2>&1
     git pull origin main >> "$LOG_FILE" 2>&1
     
-    /path/to/redeploy_if_new_model.sh >> "$LOG_FILE" 2>&1
+    # Run the redeployment script
+    bash "$REDEPLOY_SCRIPT" >> "$LOG_FILE" 2>&1
     
     echo "$(date): Redeployment completed successfully." >> "$LOG_FILE"
 else
