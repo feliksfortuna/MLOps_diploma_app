@@ -27,7 +27,7 @@ stop_server() {
 # Function to start Gunicorn server
 start_server() {
     echo "Starting Gunicorn server on port $PORT..."
-    nohup gunicorn -w 1 -b 0.0.0.0:$PORT $APP > "$LOG_FILE" 2>&1 &
+    nohup gunicorn -w 1 -b 0.0.0.0:$PORT --chdir /home/bsc/MLOps_diploma_app/devops $APP > "$LOG_FILE" 2>&1 &
     sleep 2  # Wait briefly to ensure the server starts
     if nc -z localhost $PORT; then
         echo "Server started successfully. Logs are being written to $LOG_FILE"
