@@ -12,15 +12,16 @@ echo "$(date): Pulling latest changes from GitHub..." >> "$LOG_FILE"
 # Navigate to the repo and fetch the latest changes
 cd "$REPO_DIR" && git fetch origin main >> "$LOG_FILE" 2>&1
 
-# Print git diff
-git diff --name-only HEAD origin/main
+# Print git diff for debugging
+echo "Checking for changes..."
+git diff --name-only FETCH_HEAD HEAD
 
-# Check for changes in the target directory between the current state and the fetched remote state
-if git diff --name-only HEAD origin/main | grep -q "^${TARGET_DIR}/"; then
+# Check for changes in the target directory
+if git diff --name-only FETCH_HEAD HEAD | grep -q "^${TARGET_DIR}/"; then
     echo "$(date): Changes detected in the '${TARGET_DIR}' directory. Redeploying..." >> "$LOG_FILE"
     
     # Reset and pull the latest changes
-    git reset --hard origin/main >> "$LOG_FILE" 2>&1
+    git reset --hard FETCH_HEAD >> "$LOG_FILE" 2>&1
     
     # Run the redeployment script
     bash "$REDEPLOY_SCRIPT" >> "$LOG_FILE" 2>&1
