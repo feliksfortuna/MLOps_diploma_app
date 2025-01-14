@@ -10,3 +10,7 @@ merged_data.csv
 race_course_data.csv
 rider_data.csv
 rider_season_data.csv
+
+*.log
+
+__pycache__
