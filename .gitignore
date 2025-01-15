@@ -1,5 +1,7 @@
 # ignore all files that were generated for model training
-*.npy
+/common/*.npy
+*train.npy
+y*.npy
 
 .env
 
@@ -14,3 +16,5 @@ rider_season_data.csv
 *.log
 
 __pycache__
+
+mlruns/
