@@ -29,11 +29,11 @@ export default function CyclingRacePredictor() {
       const response = await axios.post('http://seito.lavbic.net:15000/predict', { index: race.index })
       const predictionData = response.data.prediction
 
-      const cyclists = predictionData.map((cyclist: { rider_name: string, image_path: string, prediction: number }, i: number) => ({
+      const cyclists = predictionData.map((cyclist: { name: string, image_url: string, prediction: number }, i: number) => ({
         id: i + 1,
-        name: cyclist.rider_name,
+        name: cyclist.name,
         winPercentage: (cyclist.prediction * 100).toFixed(2),
-        imageUrl: `${cyclist.image_path}`
+        imageUrl: cyclist.image_url || 'http://seito.lavbic.net:15000/images/unknown.jpg'
       }))
 
       setTopCyclists(cyclists)
@@ -112,6 +112,7 @@ export default function CyclingRacePredictor() {
                             alt={`${cyclist.name}'s avatar`}
                             width={40}
                             height={40}
+                            onError={(e) => (e.currentTarget.src = 'http://seito.lavbic.net:15000/images/unknown.jpg')}
                             className="rounded-full"
                           />
                           <span>{cyclist.name}</span>

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import numpy as np
 import pickle
@@ -48,7 +48,7 @@ def predict():
             {
                 "name": name,
                 "prediction": float(pred),
-                "image_url": os.path.join(image_dir, f"{name}.jpg")
+                "image_url": os.path.join(f"{name}.jpg")
             }
             for name, pred in zip(race_rider_names, prediction)
         ]
@@ -61,6 +61,13 @@ def predict():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/images/<filename>')
+def get_image(filename):
+    if os.path.exists(os.path.join(image_dir, filename)):
+        return send_from_directory(image_dir, filename)
+    else:
+        return send_from_directory(image_dir, "unknown.jpg")
 
 # Run the Flask app
 if __name__ == "__main__":
