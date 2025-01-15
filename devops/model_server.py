@@ -51,6 +51,10 @@ def predict():
             for name, pred in zip(race_rider_names, prediction)
         ]
 
+
+        # Sort the predictions
+        rider_prediction = sorted(rider_prediction, key=lambda x: x["prediction"], reverse=True)
+
         return jsonify({"prediction": rider_prediction})
     
     except Exception as e:
