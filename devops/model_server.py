@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import numpy as np
 import pickle
+import csv
 import os
 
 # Initialize Flask app
@@ -13,6 +14,7 @@ model_path = "./model/model.pkl"
 rider_names_path = "./rider_names_test.npy"
 data_path = "./X_test.npy"
 image_dir = "../common/images"
+race_names_path = "../common/race_names.csv"
 
 # Load the pickled model
 with open(model_path, 'rb') as f:
@@ -23,6 +25,12 @@ rider_names = np.load(rider_names_path, allow_pickle=True)  # Shape: (num_races,
 
 # Load the data
 X_test = np.load(data_path, allow_pickle=True)  # Shape: (num_races, num_riders, num_features)
+
+# Load the race names data
+with open(race_names_path, 'r') as f:
+    reader = csv.reader(f)
+    next(reader)  # Skip the header
+    race_names = [row for row in reader]
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -68,6 +76,13 @@ def get_image(filename):
         return send_from_directory(image_dir, filename)
     else:
         return send_from_directory(image_dir, "unknown.jpg")
+    
+@app.route('/races')
+def get_races():
+    race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
+    race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
+
+    return jsonify(race_names.to_dict(orient='records'))
 
 # Run the Flask app
 if __name__ == "__main__":
