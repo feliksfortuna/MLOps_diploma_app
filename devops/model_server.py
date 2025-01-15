@@ -78,6 +78,7 @@ def get_image(filename):
     
 @app.route('/races')
 def get_races():
+    race_names = race_names.copy()
     race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
     race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
 
