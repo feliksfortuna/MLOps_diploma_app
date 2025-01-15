@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables
-PORT=6000
+PORT=15000
 APP="model_server:app"
 LOG_FILE="/home/bsc/MLOps_diploma_app/devops/server.log"
 
