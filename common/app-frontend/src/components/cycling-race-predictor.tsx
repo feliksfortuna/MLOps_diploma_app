@@ -1,33 +1,83 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
 import axios from 'axios'
 
-const races = [
-  { id: 'tour-de-france', name: 'Tour de France', index: 0 },
-  { id: 'giro-italia', name: 'Giro d\'Italia', index: 1 },
-  { id: 'vuelta-espana', name: 'Vuelta a España', index: 2 },
-  { id: 'paris-roubaix', name: 'Paris-Roubaix', index: 3 },
-]
+interface Race {
+  name: string
+  stage: string
+  index: number
+}
+
+interface Cyclist {
+  id: number
+  name: string
+  winPercentage: string
+  imageUrl: string
+}
 
 export default function CyclingRacePredictor() {
-  const [selectedRace, setSelectedRace] = useState<{ id: string, name: string, index: number } | undefined>()
-  const [topCyclists, setTopCyclists] = useState<Array<{ id: number, name: string, winPercentage: string, imageUrl: string }>>([])
+  const [races, setRaces] = useState<Race[]>([])
+  const [selectedRace, setSelectedRace] = useState<Race | undefined>()
+  const [selectedStage, setSelectedStage] = useState<string>('Stage 1')
+  const [stages, setStages] = useState<string[]>([])
+  const [topCyclists, setTopCyclists] = useState<Cyclist[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
 
-  const handleRaceChange = async (race: { id: string, name: string, index: number }) => {
+  useEffect(() => {
+    // Fetch race data from the backend
+    axios.get('http://seito.lavbic.net:15000/races')
+      .then((response) => {
+        setRaces(response.data)
+      })
+      .catch((err) => {
+        setError('Failed to load races. Please try again.')
+        console.error(err)
+      })
+  }, [])
+
+  const handleRaceChange = (race: Race) => {
     setSelectedRace(race)
     setIsOpen(false)
+  
+    // Check if the race is a stage race (not "One Day")
+    if (race.stage !== 'One Day') {
+      // Filter races with the same name to find all stages
+      const raceStages = races.filter(r => r.name === race.name)
+      const totalStages = Math.max(...raceStages.map(r => parseInt(r.stage.split(' ')[1], 10)))
+      
+      // Generate stage options dynamically
+      const newStages = Array.from({ length: totalStages }, (_, i) => `Stage ${i + 1}`)
+      setStages(newStages)
+      setSelectedStage('Stage 1')
+
+      fetchPredictions(raceStages.find(r => r.stage === 'Stage 1')?.index ?? 0)
+    } else {
+      setStages([]) // No stages for "One Day" races
+      fetchPredictions(race.index)
+    }
+  }
+
+  const handleStageChange = (stage: string) => {
+    setSelectedStage(stage)
+
+    // Find the race corresponding to the selected stage and fetch predictions
+    const raceStage = races.find(r => r.name === selectedRace?.name && r.stage === stage)
+    if (raceStage) {
+      fetchPredictions(raceStage.index)
+    }
+  }
+
+  const fetchPredictions = async (raceIndex: number) => {
     setLoading(true)
     setError(null)
-
     try {
-      const response = await axios.post('http://seito.lavbic.net:15000/predict', { index: race.index })
+      const response = await axios.post('http://seito.lavbic.net:15000/predict', { index: raceIndex })
       const predictionData = response.data.prediction
 
       const cyclists = predictionData.map((cyclist: { name: string, image_url: string, prediction: number }, i: number) => ({
@@ -54,6 +104,7 @@ export default function CyclingRacePredictor() {
         <div className="p-6">
           <h2 className="text-2xl font-bold text-center mb-6">Cycling Race Predictor</h2>
           
+          {/* Race selection dropdown */}
           <div className="relative mb-6">
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -72,21 +123,37 @@ export default function CyclingRacePredictor() {
                 className="absolute z-10 mt-2 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
                 role="listbox"
               >
-                {races.map((race) => (
+                {Array.from(new Set(races.map((race) => race.name))).map((name, index) => (
                   <li
-                    key={race.id}
+                    key={index}
                     className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-primary hover:text-white ${
-                      race.id === selectedRace?.id ? 'bg-primary text-white' : 'text-gray-900'
+                      name === selectedRace?.name ? 'bg-primary text-white' : 'text-gray-900'
                     }`}
-                    onClick={() => handleRaceChange(race)}
+                    onClick={() => handleRaceChange(races.find((race) => race.name === name)!)}
                     role="option"
                   >
-                    {race.name}
+                    {name}
                   </li>
                 ))}
               </ul>
             )}
           </div>
+
+          {/* Stage selection dropdown */}
+          {stages.length > 0 && (
+            <div className="relative mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Select Stage</label>
+              <select
+                value={selectedStage}
+                onChange={(e) => handleStageChange(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {stages.map((stage, index) => (
+                  <option key={index} value={stage}>{stage}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {loading && <p className="text-center">Loading predictions...</p>}
           {error && <p className="text-center text-red-500">{error}</p>}

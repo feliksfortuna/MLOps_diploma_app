@@ -3,7 +3,6 @@ from flask_cors import CORS
 import pandas as pd
 import numpy as np
 import pickle
-import csv
 import os
 
 # Initialize Flask app
@@ -49,6 +48,9 @@ def predict():
         # Get the rider names for the specified race
         race_rider_names = rider_names[race_index]  # Shape: (num_riders,)
 
+        print(X_test.shape)
+        print(rider_names.shape)
+
         # Combine rider names, predictions, and image paths
         rider_prediction = [
             {
@@ -58,7 +60,6 @@ def predict():
             }
             for name, pred in zip(race_rider_names, prediction) if name != "PAD"
         ]
-
 
         # Sort the predictions
         rider_prediction = sorted(rider_prediction, key=lambda x: x["prediction"], reverse=True)
@@ -79,6 +80,11 @@ def get_image(filename):
 def get_races():
     race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
     race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
+
+    length = len(X_test)
+    print(length)
+    print(len(race_names))
+    race_names = race_names.tail(length)
 
     return jsonify(race_names.to_dict(orient='records'))
 
