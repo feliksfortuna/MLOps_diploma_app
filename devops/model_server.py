@@ -84,6 +84,10 @@ def get_races():
 
     race_names = race_names.sort_values(['name', 'stage'])
 
+    # reset index
+    for race, i in race_names.iter:
+        race['index'] = i
+
     return jsonify(race_names.to_dict(orient='records'))
 
 # Run the Flask app
