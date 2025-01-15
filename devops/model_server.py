@@ -84,8 +84,9 @@ def get_races():
 
     race_names = race_names.sort_values(['name', 'stage'])
 
-    # reset indexes in the current order in the dataframe
+    # reset index in dataframe to current order
     race_names.reset_index(drop=True, inplace=True)
+    race_names['index'] = race_names.index
 
     return jsonify(race_names.to_dict(orient='records'))
 
