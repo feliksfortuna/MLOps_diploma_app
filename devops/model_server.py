@@ -85,7 +85,7 @@ def get_races():
     race_names = race_names.sort_values(['name', 'stage'])
 
     # reset index
-    for race, i in race_names.iter:
+    for i, race in race_names.iterrows():
         race['index'] = i
 
     return jsonify(race_names.to_dict(orient='records'))
