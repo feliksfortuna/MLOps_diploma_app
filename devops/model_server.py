@@ -85,13 +85,8 @@ def get_races():
     race_names = race_names.sort_values(['name', 'stage'])
 
     # reset index
-    for i, race in race_names.iterrows():
-        race['index'] = i
-
-    # log race names
-    import logging
-    logging.basicConfig(level=logging.INFO)
-    logging.info(race_names)
+    for i, _ in enumerate(race_names.iterrows()):
+        race_names.at[i, 'index'] = i
 
     return jsonify(race_names.to_dict(orient='records'))
 
