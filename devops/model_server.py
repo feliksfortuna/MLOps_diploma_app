@@ -88,8 +88,10 @@ def get_races():
     for i, race in race_names.iterrows():
         race['index'] = i
 
-    # print race names
-    print(race_names)
+    # log race names
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    logging.info(race_names)
 
     return jsonify(race_names.to_dict(orient='records'))
 
