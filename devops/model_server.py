@@ -48,9 +48,6 @@ def predict():
         # Get the rider names for the specified race
         race_rider_names = rider_names[race_index]  # Shape: (num_riders,)
 
-        print(X_test.shape)
-        print(rider_names.shape)
-
         # Combine rider names, predictions, and image paths
         rider_prediction = [
             {
@@ -80,12 +77,11 @@ def get_image(filename):
 def get_races():
     global race_names_data
     race_names = race_names_data.copy()
+    race_names = race_names.sort_values(by=['name', 'stage'])
     race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
     race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
 
     length = len(X_test)
-    print(length)
-    print(len(race_names))
     race_names = race_names.tail(length)
 
     return jsonify(race_names.to_dict(orient='records'))
