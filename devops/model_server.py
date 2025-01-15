@@ -33,7 +33,7 @@ def predict():
             return jsonify({"error": "Invalid index"}), 400
 
         # Get the data for the specified race
-        race_data = X_test[race_index]  # Shape: (num_riders, num_features)
+        race_data = X_test[race_index].astype(np.float32)  # Shape: (num_riders, num_features)
         
         # Get predictions for all riders in the race
         prediction = loaded_model.predict(race_data)  # Shape: (num_riders,)
