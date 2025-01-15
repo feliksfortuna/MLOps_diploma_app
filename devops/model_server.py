@@ -45,7 +45,7 @@ def predict():
         rider_prediction = [
             {
                 "name": name,
-                "prediction": pred,
+                "prediction": float(pred),
                 "image_url": os.path.join(image_dir, f"{name}.jpg")
             }
             for name, pred in zip(race_rider_names, prediction)
