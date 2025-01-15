@@ -3,32 +3,46 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
+import axios from 'axios'
 
 const races = [
-  { id: 'tour-de-france', name: 'Tour de France' },
-  { id: 'giro-italia', name: 'Giro d\'Italia' },
-  { id: 'vuelta-espana', name: 'Vuelta a España' },
-  { id: 'paris-roubaix', name: 'Paris-Roubaix' },
+  { id: 'tour-de-france', name: 'Tour de France', index: 0 },
+  { id: 'giro-italia', name: 'Giro d\'Italia', index: 1 },
+  { id: 'vuelta-espana', name: 'Vuelta a España', index: 2 },
+  { id: 'paris-roubaix', name: 'Paris-Roubaix', index: 3 },
 ]
 
-const generateTopCyclists = () => {
-  return Array.from({ length: 10 }, (_, i) => ({
-    id: i + 1,
-    name: `Cyclist ${i + 1}`,
-    winPercentage: (Math.random() * 100).toFixed(2),
-    imageUrl: `/placeholder.svg?height=40&width=40&text=${i + 1}`
-  })).sort((a, b) => Number(b.winPercentage) - Number(a.winPercentage))
-}
-
 export default function CyclingRacePredictor() {
-  const [selectedRace, setSelectedRace] = useState<string | undefined>()
+  const [selectedRace, setSelectedRace] = useState<{ id: string, name: string, index: number } | undefined>()
   const [topCyclists, setTopCyclists] = useState<Array<{ id: number, name: string, winPercentage: string, imageUrl: string }>>([])
   const [isOpen, setIsOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleRaceChange = (value: string) => {
-    setSelectedRace(value)
-    setTopCyclists(generateTopCyclists())
+  const handleRaceChange = async (race: { id: string, name: string, index: number }) => {
+    setSelectedRace(race)
     setIsOpen(false)
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await axios.post('http://seito.lavbic.net:15000/predict', { index: race.index })
+      const predictionData = response.data.prediction
+
+      const cyclists = predictionData.map((cyclist: { rider_name: string, image_path: string, prediction: number }, i: number) => ({
+        id: i + 1,
+        name: cyclist.rider_name,
+        winPercentage: (cyclist.prediction * 100).toFixed(2),
+        imageUrl: `${cyclist.image_path}`
+      }))
+
+      setTopCyclists(cyclists)
+    } catch (err) {
+      setError('Failed to fetch predictions. Please try again.')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -45,36 +59,38 @@ export default function CyclingRacePredictor() {
               aria-expanded={isOpen}
             >
               <span className="block truncate">
-                {selectedRace ? races.find(race => race.id === selectedRace)?.name : 'Select a race'}
+                {selectedRace ? selectedRace.name : 'Select a race'}
               </span>
               <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                 <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </span>
             </button>
             {isOpen && (
-              <ul
+              <select
                 className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
-                tabIndex={-1}
-                role="listbox"
+                size={races.length}
+                onChange={(e) => handleRaceChange(races[e.target.selectedIndex])}
+                value={selectedRace?.id}
               >
                 {races.map((race) => (
-                  <li
+                  <option
                     key={race.id}
+                    value={race.id}
                     className={`cursor-default select-none relative py-2 pl-3 pr-9 hover:bg-primary hover:text-white ${
-                      race.id === selectedRace ? 'bg-primary text-white' : 'text-gray-900'
+                      race.id === selectedRace?.id ? 'bg-primary text-white' : 'text-gray-900'
                     }`}
-                    role="option"
-                    aria-selected={race.id === selectedRace}
-                    onClick={() => handleRaceChange(race.id)}
                   >
-                    <span className="block truncate">{race.name}</span>
-                  </li>
+                    {race.name}
+                  </option>
                 ))}
-              </ul>
+              </select>
             )}
           </div>
 
-          {selectedRace && topCyclists.length > 0 && (
+          {loading && <p className="text-center">Loading predictions...</p>}
+          {error && <p className="text-center text-red-500">{error}</p>}
+
+          {selectedRace && topCyclists.length > 0 && !loading && (
             <div>
               <h3 className="text-lg font-semibold mb-2">Top 10 Cyclists</h3>
               <table className="w-full">
