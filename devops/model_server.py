@@ -77,6 +77,7 @@ def get_image(filename):
 def get_races():
     global race_names_data
     race_names = race_names_data.copy()
+    race_names = race_names.sort_values(['name', 'stage'])
     race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
     race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
 
