@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import numpy as np
 import pickle
 import os
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app)
 
 # Define paths of files
 model_path = "./model/model.pkl"
