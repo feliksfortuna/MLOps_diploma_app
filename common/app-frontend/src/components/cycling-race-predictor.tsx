@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react'
 import axios from 'axios'
 
 interface Race {
+  id: number
   name: string
   stage: string
   index: number
@@ -30,7 +31,6 @@ export default function CyclingRacePredictor() {
   const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
-    // Fetch race data from the backend
     axios.get('http://seito.lavbic.net:15000/races')
       .then((response) => {
         setRaces(response.data)
@@ -41,32 +41,49 @@ export default function CyclingRacePredictor() {
       })
   }, [])
 
-  const handleRaceChange = (race: Race) => {
+  const handleRaceChange = async (race: Race) => {
     setSelectedRace(race)
     setIsOpen(false)
-  
-    // Check if the race is a stage race (not "One Day")
-    if (race.stage !== 'One Day') {
-      // Filter races with the same name to find all stages
-      const raceStages = races.filter(r => r.name === race.name)
-      const totalStages = Math.max(...raceStages.map(r => parseInt(r.stage.split(' ')[1], 10)))
-      
-      // Generate stage options dynamically
-      const newStages = Array.from({ length: totalStages }, (_, i) => `Stage ${i + 1}`)
-      setStages(newStages)
-      setSelectedStage('Stage 1')
 
-      fetchPredictions(raceStages.find(r => r.stage === 'Stage 1')?.index ?? 0)
-    } else {
-      setStages([]) // No stages for "One Day" races
-      fetchPredictions(race.index)
+    if (!race) {
+      console.error('No race selected')
+      return
+    }
+
+    try {
+      if (race.stage === 'One_Day') {
+        // Handle one-day races
+        setStages([])
+        await fetchPredictions(race.index)
+      } else if (race.stage.startsWith('Stage')) {
+        // Handle stage races
+        const raceStages = races.filter(r => r.name === race.name)
+        
+        const totalStages = Math.max(...raceStages.map(r => {
+          const match = r.stage.match(/Stage (\d+)/)
+          return match ? parseInt(match[1], 10) : 0
+        }))
+
+        const newStages = Array.from({ length: totalStages }, (_, i) => `Stage ${i + 1}`)
+        setStages(newStages)
+        setSelectedStage('Stage 1')
+
+        const stage1Race = raceStages.find(r => r.stage === 'Stage 1')
+        if (stage1Race) {
+          await fetchPredictions(stage1Race.index)
+        } else {
+          console.error('Could not find Stage 1 for race:', race.name)
+        }
+      }
+    } catch (error) {
+      console.error('Error in handleRaceChange:', error)
+      setError('Failed to load race predictions')
     }
   }
 
   const handleStageChange = (stage: string) => {
     setSelectedStage(stage)
-
-    // Find the race corresponding to the selected stage and fetch predictions
+    
     const raceStage = races.find(r => r.name === selectedRace?.name && r.stage === stage)
     if (raceStage) {
       fetchPredictions(raceStage.index)
@@ -76,8 +93,10 @@ export default function CyclingRacePredictor() {
   const fetchPredictions = async (raceIndex: number) => {
     setLoading(true)
     setError(null)
+    
     try {
       const response = await axios.post('http://seito.lavbic.net:15000/predict', { index: raceIndex })
+      
       const predictionData = response.data.prediction
 
       const cyclists = predictionData.map((cyclist: { name: string, image_url: string, prediction: number }, i: number) => ({
@@ -89,8 +108,9 @@ export default function CyclingRacePredictor() {
 
       setTopCyclists(cyclists)
     } catch (err) {
+      console.error('Error fetching predictions:', err)
       setError('Failed to fetch predictions. Please try again.')
-      console.error(err)
+      setTopCyclists([])
     } finally {
       setLoading(false)
     }
@@ -104,7 +124,6 @@ export default function CyclingRacePredictor() {
         <div className="p-6">
           <h2 className="text-2xl font-bold text-center mb-6">Cycling Race Predictor</h2>
           
-          {/* Race selection dropdown */}
           <div className="relative mb-6">
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -123,23 +142,27 @@ export default function CyclingRacePredictor() {
                 className="absolute z-10 mt-2 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
                 role="listbox"
               >
-                {Array.from(new Set(races.map((race) => race.name))).map((name, index) => (
-                  <li
-                    key={index}
-                    className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-primary hover:text-white ${
-                      name === selectedRace?.name ? 'bg-primary text-white' : 'text-gray-900'
-                    }`}
-                    onClick={() => handleRaceChange(races.find((race) => race.name === name)!)}
-                    role="option"
-                  >
-                    {name}
-                  </li>
-                ))}
+                {Array.from(new Set(races.map((race) => race.name))).map((name) => {
+                  const race = races.find((r) => r.name === name)
+                  if (!race) return null
+                  
+                  return (
+                    <li
+                      key={name}
+                      className={`cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-primary hover:text-white ${
+                        name === selectedRace?.name ? 'bg-primary text-white' : 'text-gray-900'
+                      }`}
+                      onClick={() => handleRaceChange(race)}
+                      role="option"
+                    >
+                      {name}
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>
 
-          {/* Stage selection dropdown */}
           {stages.length > 0 && (
             <div className="relative mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-1">Select Stage</label>
