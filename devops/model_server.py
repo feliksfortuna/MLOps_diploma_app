@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+import pandas as pd
 import numpy as np
 import pickle
 import csv
@@ -27,10 +28,7 @@ rider_names = np.load(rider_names_path, allow_pickle=True)  # Shape: (num_races,
 X_test = np.load(data_path, allow_pickle=True)  # Shape: (num_races, num_riders, num_features)
 
 # Load the race names data
-with open(race_names_path, 'r') as f:
-    reader = csv.reader(f)
-    next(reader)  # Skip the header
-    race_names = [row for row in reader]
+race_names = pd.read_csv(race_names_path)
 
 @app.route('/predict', methods=['POST'])
 def predict():
