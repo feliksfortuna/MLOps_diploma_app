@@ -50,7 +50,7 @@ def predict():
                 "prediction": float(pred),
                 "image_url": os.path.join(f"http://seito.lavbic.net:15000/images/{name}.jpg")
             }
-            for name, pred in zip(race_rider_names, prediction)
+            for name, pred in zip(race_rider_names, prediction) if name != "PAD"
         ]
 
 
