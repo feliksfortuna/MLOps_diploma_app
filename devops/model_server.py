@@ -17,7 +17,7 @@ with open(model_path, 'rb') as f:
     loaded_model = pickle.load(f)
 
 # Load the rider names
-rider_names = np.load(rider_names_path)  # Shape: (num_races, num_riders)
+rider_names = np.load(rider_names_path, allow_pickle=True)  # Shape: (num_races, num_riders)
 
 # Load the data
 X_test = np.load(data_path, allow_pickle=True)  # Shape: (num_races, num_riders, num_features)
