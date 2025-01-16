@@ -5,7 +5,7 @@ import logging
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost", "http://seito.lavbic.net", "http://192.168.5.178", "http://127.0.0.1:4040"]}})
+CORS(app, resources={r"/*": {"origins": ["http://localhost", "http://seito.lavbic.net", "https://ultimate-krill-officially.ngrok-free.app"]}})
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
