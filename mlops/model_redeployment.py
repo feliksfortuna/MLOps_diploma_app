@@ -259,13 +259,13 @@ def preprocess_data(index):
     rider_names_test = np.array(rider_names_test, dtype=object)
 
     # Save the data
-    np.save('~/mlops/X_train.npy', X_train)
-    np.save('~/mlops/y_train.npy', y_train)
-    np.save('~/mlops/rider_names_train.npy', rider_names_train)
+    np.save('/Users/feliks/Documents/Faks/Diplomska/App/mlops/X_train.npy', X_train)
+    np.save('/Users/feliks/Documents/Faks/Diplomska/App/mlops/y_train.npy', y_train)
+    np.save('/Users/feliks/Documents/Faks/Diplomska/App/mlops/rider_names_train.npy', rider_names_train)
 
-    np.save('~/mlops/X_test.npy', X_test)
-    np.save('~/mlops/y_test.npy', y_test)
-    np.save('~/mlops/rider_names_test.npy', rider_names_test)
+    np.save('/Users/feliks/Documents/Faks/Diplomska/App/mlops/X_test.npy', X_test)
+    np.save('/Users/feliks/Documents/Faks/Diplomska/App/mlops/y_test.npy', y_test)
+    np.save('/Users/feliks/Documents/Faks/Diplomska/App/mlops/rider_names_test.npy', rider_names_test)
 
     print("Data preprocessing completed and saved.")
 
@@ -297,10 +297,10 @@ class RaceRegressionDataset(torch.utils.data.Dataset):
     
 def retrain():
     # Load the data (adjust file paths as needed)
-    X_train = np.load('X_train.npy', allow_pickle=True)
-    y_train = np.load('y_train.npy', allow_pickle=True)
-    X_test = np.load('X_test.npy', allow_pickle=True)
-    y_test = np.load('y_test.npy', allow_pickle=True)
+    X_train = np.load('/Users/feliks/Documents/Faks/Diplomska/App/mlops/X_train.npy', allow_pickle=True)
+    y_train = np.load('/Users/feliks/Documents/Faks/Diplomska/App/mlops/y_train.npy', allow_pickle=True)
+    X_test = np.load('/Users/feliks/Documents/Faks/Diplomska/App/mlops/X_test.npy', allow_pickle=True)
+    y_test = np.load('/Users/feliks/Documents/Faks/Diplomska/App/mlops/y_test.npy', allow_pickle=True)
 
     # Flatten the data for scikit-learn models
     X_train_flat = X_train.reshape(-1, X_train.shape[2])    # Shape: (num_races_train * max_riders, num_features)
