@@ -1,9 +1,27 @@
 import logging
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 import data_process
+import pandas as pd
+import numpy as np
+import os
+
+# Define paths of files
+rider_names_path = "./rider_names_test.npy"
+data_path = "./X_test.npy"
+image_dir = "../common/images"
+race_names_path = "../common/race_names.csv"
+
+# Load the rider names
+rider_names = np.load(rider_names_path, allow_pickle=True)
+
+# Load the data
+X_test = np.load(data_path, allow_pickle=True)
+
+# Load the race names data
+race_names_data = pd.read_csv(race_names_path)
 
 # Initialize logging
 logging.basicConfig(
@@ -67,6 +85,30 @@ def redeploy():
     except Exception as e:
         logging.error(f"Unexpected error occurred: {e}")
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+    
+@app.route('/images/<filename>')
+def get_image(filename):
+    if os.path.exists(os.path.join(image_dir, filename)):
+        return send_from_directory(image_dir, filename)
+    else:
+        return send_from_directory(image_dir, "unknown.jpg")
+    
+@app.route('/races')
+def get_races():
+    global race_names_data
+    race_names = race_names_data.copy()
+    length = len(X_test)
+    race_names = race_names.tail(length)
+    race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
+    race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
+
+    race_names = race_names.sort_values(['name', 'stage'])
+
+    # reset index in dataframe to current order
+    race_names.reset_index(drop=True, inplace=True)
+    race_names['index'] = race_names.index
+
+    return jsonify(race_names.to_dict(orient='records'))
 
 if __name__ == '__main__':
     logging.info("Starting Flask server on 0.0.0.0:5010")
