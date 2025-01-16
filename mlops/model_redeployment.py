@@ -1,19 +1,19 @@
-import pandas as pd
-import numpy as np
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, OrdinalEncoder
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
 import mlflow
-from mlflow.tracking import MlflowClient
+import mlflow.pytorch
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-import mlflow.pytorch
 from mlflow.models.signature import infer_signature
+from mlflow.tracking import MlflowClient
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, OrdinalEncoder
+from torch.utils.data import DataLoader
 
-merged_data = pd.read_csv('../common/final_data.csv')
+merged_data = pd.read_csv('/Users/feliks/Documents/Faks/Diplomska/App/common/final_data.csv')
 
 # Set MLflow experiment
 mlflow.set_tracking_uri("http://seito.lavbic.net:5000")
@@ -27,8 +27,6 @@ runs = client.search_runs(experiment_id, order_by=["metrics.test_mae ASC"], max_
 best_run = runs[0]
 
 best_params = best_run.data.params
-print("Best Run Parameters:")
-print(best_params)
 
 def pad_riders(rider_list, max_riders, pad_value='Unknown'):
         if len(rider_list) < max_riders:
@@ -261,13 +259,13 @@ def preprocess_data(index):
     rider_names_test = np.array(rider_names_test, dtype=object)
 
     # Save the data
-    np.save('X_train.npy', X_train)
-    np.save('y_train.npy', y_train)
-    np.save('rider_names_train.npy', rider_names_train)
+    np.save('~/mlops/X_train.npy', X_train)
+    np.save('~/mlops/y_train.npy', y_train)
+    np.save('~/mlops/rider_names_train.npy', rider_names_train)
 
-    np.save('X_test.npy', X_test)
-    np.save('y_test.npy', y_test)
-    np.save('rider_names_test.npy', rider_names_test)
+    np.save('~/mlops/X_test.npy', X_test)
+    np.save('~/mlops/y_test.npy', y_test)
+    np.save('~/mlops/rider_names_test.npy', rider_names_test)
 
     print("Data preprocessing completed and saved.")
 
@@ -429,23 +427,22 @@ def deploy_and_overwrite_model(run_id):
         run_id=run_id
     )
 
-    # Transition the new model version to "Production"
-    client.transition_model_version_stage(
+    # Add alias "production" to the new model version
+    client.set_registered_model_alias(
         name=model_name,
-        version=new_model_version.version,
-        stage="Production"
+        alias="production",
+        version=new_model_version.version
     )
-    print(f"New model version {new_model_version.version} deployed to production.")
+    print(f"New model version {new_model_version.version} deployed to production with alias 'production'.")
 
-    # Archive old production model versions
+    # Remove alias "production" from old model versions
     for mv in client.search_model_versions(f"name='{model_name}'"):
-        if mv.current_stage == "Production" and mv.version != str(new_model_version.version):
-            client.transition_model_version_stage(
+        if "production" in mv.aliases and mv.version != str(new_model_version.version):
+            client.delete_registered_model_alias(
                 name=model_name,
-                version=mv.version,
-                stage="Archived"
+                alias="production"
             )
-            print(f"Archived previous model version {mv.version}.")
+            print(f"Removed 'production' alias from previous model version {mv.version}.")
 
 def redeploy_model(index):
     preprocess_data(index)
