@@ -122,9 +122,9 @@ update_nginx_proxy() {
     local port="$1"
     echo "Updating Nginx to route traffic to port $port..."
     
-    if sudo /usr/bin/sed -i "s/proxy_pass http:\/\/localhost:[0-9]*/proxy_pass http:\/\/localhost:$port/" /etc/nginx/sites-available/mlflow && \
-       sudo /usr/sbin/nginx -t && \
-       sudo /bin/systemctl reload nginx; then
+    if echo "$SUDO_PASSWORD" | sudo -S /usr/bin/sed -i "s/proxy_pass http:\/\/localhost:[0-9]*/proxy_pass http:\/\/localhost:$port/" /etc/nginx/sites-available/mlflow && \
+       echo "$SUDO_PASSWORD" | sudo -S /usr/sbin/nginx -t && \
+       echo "$SUDO_PASSWORD" | sudo -S /bin/systemctl reload nginx; then
         echo "Nginx updated and reloaded successfully."
         return 0
     else
