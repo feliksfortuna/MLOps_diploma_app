@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MODEL_URI="models:/Race prediction/Production"
+MODEL_URI="models:/Race prediction@production"
 PORT_OLD=5006
 PORT_NEW=5007
 LOG_DIR="/tmp/mlflow_logs"
