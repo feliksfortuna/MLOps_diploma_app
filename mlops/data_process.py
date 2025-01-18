@@ -11,7 +11,7 @@ def split_test_train_data(index):
     test_data = merged_data[merged_data['year'] == 2024]
     
     unique_race_names = test_data['name'].unique()
-    races_to_move = unique_race_names[:index+1]
+    races_to_move = unique_race_names[:index]
     
     race_data_to_move = test_data[test_data['name'].isin(races_to_move)]
     train_data = pd.concat([train_data, race_data_to_move], ignore_index=True)
