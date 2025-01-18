@@ -90,51 +90,31 @@ export default function CyclingRacePredictor() {
     }
   }
 
-  const fetchRaceData = async (index: number) => {
-    try {
-      const response = await axios.post('http://seito.lavbic.net:5010/race-data', { index });
-      return response.data;
-    } catch (err) {
-      console.error('Error fetching race data:', err);
-      throw new Error('Failed to fetch race data.');
-    }
-  };
-
   const fetchPredictions = async (raceIndex: number) => {
-    setLoading(true);
-    setError(null);
-  
+    setLoading(true)
+    setError(null)
+    
     try {
-      const raceData = await fetchRaceData(raceIndex);
-  
-      const payload = { instances: [raceData] };
-  
-      const response = await axios.post('http://seito.lavbic.net:5005/invocations', payload, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-  
-      const predictionData = response.data.predictions;
-  
-      const cyclists = predictionData.map(
-        (cyclist: { name: string; image_url: string; prediction: number }, i: number) => ({
-          id: i + 1,
-          name: cyclist.name,
-          winPercentage: (cyclist.prediction * 100).toFixed(2),
-          imageUrl: cyclist.image_url,
-        })
-      );
-  
-      // Update state with the prediction results
-      setTopCyclists(cyclists);
+      const response = await axios.post('http://seito.lavbic.net:5010/predict', { index: raceIndex })
+      
+      const predictionData = response.data.prediction
+
+      const cyclists = predictionData.map((cyclist: { name: string, image_url: string, prediction: number }, i: number) => ({
+        id: i + 1,
+        name: cyclist.name,
+        winPercentage: (cyclist.prediction * 100).toFixed(2),
+        imageUrl: cyclist.image_url
+      }))
+
+      setTopCyclists(cyclists)
     } catch (err) {
-      console.error('Error fetching predictions:', err);
-      setError('Failed to fetch predictions. Please try again.');
-      setTopCyclists([]);
+      console.error('Error fetching predictions:', err)
+      setError('Failed to fetch predictions. Please try again.')
+      setTopCyclists([])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
-  
+  }
 
   const displayedCyclists = showAll ? topCyclists : topCyclists.slice(0, 10)
 

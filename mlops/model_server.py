@@ -7,6 +7,7 @@ import data_process
 import pandas as pd
 import numpy as np
 import os
+import json
 
 # Define paths of files
 rider_names_path = "./rider_names_test.npy"
@@ -109,21 +110,68 @@ def get_races():
     race_names['index'] = race_names.index
 
     return jsonify(race_names.to_dict(orient='records')), 200
-
-@app.route('/race-data', methods=['POST'])
-def get_race_data():
-    global X_test
+    
+@app.route('/predict', methods=['POST'])
+def predict():
     try:
+        # Parse the incoming request
         data = request.get_json(force=True)
+        logging.debug(f"Request JSON payload: {data}")
+
+        # Validate the index parameter
         index = data.get('index')
+        if index is None:
+            logging.warning("Index not provided in request.")
+            return jsonify({"error": "Index not provided"}), 400
 
-        if index is None or not isinstance(index, int):
-            return jsonify({"error": "Invalid or missing 'index' parameter"}), 400
+        if not isinstance(index, int):
+            logging.warning(f"Invalid index type: {type(index)}. Must be an integer.")
+            return jsonify({"error": "Index must be an integer"}), 400
 
-        race_data = X_test[index]
-        return jsonify(race_data.tolist()), 200
-    except IndexError:
-        return jsonify({"error": "Index out of range"}), 400
+        # Ensure index is within bounds
+        if index < 0 or index >= len(X_test):
+            logging.warning("Index out of bounds.")
+            return jsonify({"error": "Invalid index"}), 400
+
+        # Select the data
+        race_data = X_test[index].astype(np.float32)
+        race_rider_names = rider_names[index]
+
+        # Prepare payload for external service
+        payload = {
+            "instances": race_data.tolist()
+        }
+
+        # Make the prediction
+        response = requests.post(
+            "http://seito.lavbic.net:5005/invocations",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(payload),
+            timeout=600
+        )
+
+        if response.status_code != 200:
+            logging.error(f"Prediction service returned error: {response.text}")
+            return jsonify({"error": "Prediction service error"}), response.status_code
+
+        # Parse predictions
+        prediction = response.json()['predictions']
+
+        # Combine predictions with rider names and images
+        rider_prediction = [
+            {
+                "name": name,
+                "prediction": float(pred),
+                "image_url": os.path.join(f"http://seito.lavbic.net:15000/images/{name}.jpg")
+            }
+            for name, pred in zip(race_rider_names, prediction) if name != "PAD"
+        ]
+
+        # Sort by prediction in descending order
+        rider_prediction = sorted(rider_prediction, key=lambda x: x["prediction"], reverse=True)
+
+        return jsonify({"prediction": rider_prediction}), 200
+
     except Exception as e:
         logging.error(f"Error occurred: {e}")
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
