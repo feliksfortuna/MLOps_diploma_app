@@ -5,32 +5,31 @@ import sys
 def get_model_version():
     client = mlflow.tracking.MlflowClient()
     try:
-        # Get the production version of the model
         model_name = "Race prediction"
-        filter_string = "name='{}'".format(model_name)
+        # Get all versions
+        filter_string = f"name='{model_name}'"
         versions = client.search_model_versions(filter_string)
         
-        # Find the production version
-        prod_version = None
-        for version in versions:
-            if version.current_stage == 'Production':
-                prod_version = version
-                break
-        
-        if prod_version:
-            # Return relevant version info as JSON
+        # Set production alias on latest version if not already set
+        if versions:
+            latest_version = sorted(versions, key=lambda x: x.version, reverse=True)[0]
+            try:
+                prod_version = client.get_model_version_by_alias(model_name, "production")
+            except mlflow.exceptions.RestException:
+                # If no production alias exists, set it on the latest version
+                client.set_registered_model_alias(model_name, "production", latest_version.version)
+                prod_version = latest_version
+
             version_info = {
                 'name': model_name,
                 'version': prod_version.version,
                 'run_id': prod_version.run_id,
-                'current_stage': prod_version.current_stage,
                 'creation_timestamp': prod_version.creation_timestamp
             }
             return json.dumps(version_info)
         else:
-            print("No production version found", file=sys.stderr)
+            print("No versions found", file=sys.stderr)
             return None
-            
     except Exception as e:
         print(f"Error getting model version: {str(e)}", file=sys.stderr)
         return None
