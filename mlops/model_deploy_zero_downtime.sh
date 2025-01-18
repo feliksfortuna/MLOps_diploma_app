@@ -53,7 +53,7 @@ start_mlflow_server() {
     echo "MLflow version: $(python -c 'import mlflow; print(mlflow.__version__)')"
     
     # Start the server with worker timeout and retries
-    GUNICORN_CMD_ARGS="--timeout 120 --workers 1 --threads 4 --retry-policy exponential:min=1000,max=30000" \
+    GUNICORN_CMD_ARGS="--timeout 120 --workers 1 --threads 4 --backlog 2048 --max-requests 1000 --max-requests-jitter 50" \
     mlflow models serve -m "$MODEL_URI" \
         --host "0.0.0.0" \
         --port "$port" \
