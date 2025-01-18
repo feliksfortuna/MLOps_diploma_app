@@ -12,6 +12,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, OrdinalEncoder
 from torch.utils.data import DataLoader
+from model_def import RaceRegressionModel
 
 merged_data = pd.read_csv('/Users/feliks/Documents/Faks/Diplomska/App/common/final_data.csv')
 
@@ -268,20 +269,6 @@ def preprocess_data(index):
     np.save('/Users/feliks/Documents/Faks/Diplomska/App/mlops/rider_names_test.npy', rider_names_test)
 
     print("Data preprocessing completed and saved.")
-
-# Define the model class
-class RaceRegressionModel(nn.Module):
-    def __init__(self, input_size, hidden_size=128):
-        super(RaceRegressionModel, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_size, 1)
-
-    def forward(self, x):
-        out = self.fc1(x)
-        out = self.relu(out)
-        out = self.fc2(out)
-        return out.squeeze()
 
 # Define the dataset class
 class RaceRegressionDataset(torch.utils.data.Dataset):
