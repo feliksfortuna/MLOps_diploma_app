@@ -108,7 +108,26 @@ def get_races():
     race_names.reset_index(drop=True, inplace=True)
     race_names['index'] = race_names.index
 
-    return jsonify(race_names.to_dict(orient='records'))
+    return jsonify(race_names.to_dict(orient='records')), 200
+
+@app.route('/race-data', methods=['POST'])
+def get_race_data():
+    global X_test
+    try:
+        data = request.get_json(force=True)
+        index = data.get('index')
+
+        if index is None or not isinstance(index, int):
+            return jsonify({"error": "Invalid or missing 'index' parameter"}), 400
+
+        race_data = X_test[index]
+        return jsonify(race_data.tolist()), 200
+    except IndexError:
+        return jsonify({"error": "Index out of range"}), 400
+    except Exception as e:
+        logging.error(f"Error occurred: {e}")
+        return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+
 
 if __name__ == '__main__':
     logging.info("Starting Flask server on 0.0.0.0:5010")
