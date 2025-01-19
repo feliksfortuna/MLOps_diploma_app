@@ -16,19 +16,6 @@ data_path = "./X_test.npy"
 image_dir = "../common/images"
 race_names_path = "../common/race_names.csv"
 
-# Load the pickled model
-with open(model_path, 'rb') as f:
-    loaded_model = pickle.load(f)
-
-# Load the rider names
-rider_names = np.load(rider_names_path, allow_pickle=True)  # Shape: (num_races, num_riders)
-
-# Load the data
-X_test = np.load(data_path, allow_pickle=True)  # Shape: (num_races, num_riders, num_features)
-
-# Load the race names data
-race_names_data = pd.read_csv(race_names_path)
-
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
@@ -38,9 +25,19 @@ def predict():
 
         if race_index < 0 or race_index >= len(X_test):
             return jsonify({"error": "Invalid index"}), 400
+        
+        # Load the rider names
+        rider_names = np.load(rider_names_path, allow_pickle=True)
+
+        # Load the data
+        X_test = np.load(data_path, allow_pickle=True)
 
         # Get the data for the specified race
         race_data = X_test[race_index].astype(np.float32)  # Shape: (num_riders, num_features)
+
+        # Load the pickled model
+        with open(model_path, 'rb') as f:
+            loaded_model = pickle.load(f)
         
         # Get predictions for all riders in the race
         prediction = loaded_model.predict(race_data)  # Shape: (num_riders,)
