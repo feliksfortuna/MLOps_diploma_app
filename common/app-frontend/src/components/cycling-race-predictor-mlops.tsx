@@ -57,8 +57,8 @@ export default function CyclingRacePredictor() {
     { id: 33, name: 'Tour of Guangxi', stage: 'Stage 6', index: 152 },
 ];
 
-
-  const [races] = useState<Race[]>(predefinedRaces);
+  const [racesRedeployment] = useState<Race[]>(predefinedRaces);
+  const [races, setRaces] = useState<Race[]>([])
   const [selectedRace, setSelectedRace] = useState<Race | undefined>()
   const [selectedStage, setSelectedStage] = useState<string>('Stage 1')
   const [stages, setStages] = useState<string[]>([])
@@ -78,6 +78,7 @@ export default function CyclingRacePredictor() {
     try {
       const response = await axios.get('http://seito.lavbic.net:5010/races')
       if (response.data.length > 0 && deploymentIndex === '') {
+        setRaces(response.data)
         setDeploymentIndex(response.data[0].index)
       }
     } catch (err) {
@@ -123,7 +124,7 @@ export default function CyclingRacePredictor() {
     }
 
     try {
-      if (race.stage === 'One Day') {
+      if (race.stage === 'One_Day') {
         setStages([])
         await fetchPredictions(race.index)
       } else if (race.stage.startsWith('Stage')) {
@@ -207,9 +208,9 @@ export default function CyclingRacePredictor() {
                     className="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="">Select race</option>
-                    {races.map((race) => (
+                    {racesRedeployment.map((race) => (
                       <option key={race.index} value={race.index}>
-                        {race.index} - {race.name}
+                        {race.id} - {race.name}
                       </option>
                     ))}
                   </select>
