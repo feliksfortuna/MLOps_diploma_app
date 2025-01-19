@@ -75,20 +75,35 @@ def get_image(filename):
     
 @app.route('/races')
 def get_races():
-    global race_names_data
-    race_names = race_names_data.copy()
+    # Read race names from the file
+    race_names = pd.read_csv(race_names_path)
+
+    # Load test data to determine the relevant rows
+    X_test = np.load(data_path, allow_pickle=True)
     length = len(X_test)
+
+    # Filter the race names to include only the relevant rows
     race_names = race_names.tail(length)
+
+    # Format the race names and stages
     race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
     race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
 
-    race_names = race_names.sort_values(['name', 'stage'])
+    # Create a copy of the original DataFrame to maintain the initial order
+    original_order = race_names.copy()
 
-    # reset index in dataframe to current order
-    race_names.reset_index(drop=True, inplace=True)
-    race_names['index'] = race_names.index
+    # Sort the races by name and stage
+    sorted_races = race_names.sort_values(['name', 'stage']).reset_index(drop=True)
 
-    return jsonify(race_names.to_dict(orient='records'))
+    # Map the sorted indices back to the original order
+    original_order['index'] = original_order.apply(
+        lambda row: sorted_races[(sorted_races['name'] == row['name']) & 
+                                 (sorted_races['stage'] == row['stage'])].index[0],
+        axis=1
+    )
+
+    # Convert to dictionary and return in the original order
+    return jsonify(original_order.to_dict(orient='records')), 200
 
 # Run the Flask app
 if __name__ == "__main__":

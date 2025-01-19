@@ -79,7 +79,6 @@ export default function CyclingRacePredictor() {
       const response = await axios.get('http://seito.lavbic.net:5010/races')
       if (response.data.length > 0 && deploymentIndex === '') {
         setRaces(response.data)
-        setDeploymentIndex(response.data[0].index)
       }
     } catch (err) {
       setError('Failed to load races. Please try again.')
