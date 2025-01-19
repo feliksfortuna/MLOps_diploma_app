@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, RefreshCw } from 'lucide-react'
 import axios from 'axios'
 
 interface Race {
@@ -20,26 +20,98 @@ interface Cyclist {
 }
 
 export default function CyclingRacePredictor() {
-  const [races, setRaces] = useState<Race[]>([])
+  const predefinedRaces: Race[] = [
+    { id: 0, name: 'Reset', stage: 'One Day', index: 0 },
+    { id: 1, name: 'Tour Down Under', stage: 'Stage 6', index: 5 },
+    { id: 2, name: 'Great Ocean Race', stage: 'One Day', index: 6 },
+    { id: 3, name: 'UAE Tour', stage: 'Stage 7', index: 13 },
+    { id: 4, name: 'Omloop Het Nieuwsblad', stage: 'One Day', index: 14 },
+    { id: 5, name: 'Strade Bianche', stage: 'One Day', index: 15 },
+    { id: 6, name: 'Paris-Nice', stage: 'Stage 8', index: 23 },
+    { id: 7, name: 'Tirreno-Adriatico', stage: 'Stage 6', index: 28 },
+    { id: 8, name: 'Milano-Sanremo', stage: 'One Day', index: 29 },
+    { id: 9, name: 'Volta a Catalunya', stage: 'Stage 7', index: 36 },
+    { id: 10, name: 'Classic Brugge-De Panne', stage: 'One Day', index: 37 },
+    { id: 11, name: 'E3 Harelbeke', stage: 'One Day', index: 38 },
+    { id: 12, name: 'Gent-Wevelgem', stage: 'One Day', index: 39 },
+    { id: 13, name: 'Dwars door Vlaanderen', stage: 'One Day', index: 40 },
+    { id: 14, name: 'Itzulia Basque Country', stage: 'Stage 6', index: 46 },
+    { id: 15, name: 'Amstel Gold Race', stage: 'One Day', index: 47 },
+    { id: 16, name: 'La Flèche Wallonne', stage: 'One Day', index: 48 },
+    { id: 17, name: 'Liège-Bastogne-Liège', stage: 'One Day', index: 49 },
+    { id: 18, name: 'Tour de Romandie', stage: 'Stage 5', index: 55 },
+    { id: 19, name: 'Eschborn-Frankfurt', stage: 'One Day', index: 56 },
+    { id: 20, name: 'Giro d’Italia', stage: 'Stage 21', index: 76 },
+    { id: 21, name: 'Critérium du Dauphiné', stage: 'Stage 8', index: 84 },
+    { id: 22, name: 'Tour de Suisse', stage: 'Stage 8', index: 92 },
+    { id: 23, name: 'Tour de France', stage: 'Stage 21', index: 110 },
+    { id: 24, name: 'San Sebastián', stage: 'One Day', index: 111 },
+    { id: 25, name: 'Tour de Pologne', stage: 'Stage 7', index: 118 },
+    { id: 26, name: 'Vuelta a España', stage: 'Stage 21', index: 138 },
+    { id: 27, name: 'Bretagne Classic', stage: 'One Day', index: 139 },
+    { id: 28, name: 'Renewi Tour', stage: 'Stage 5', index: 142 },
+    { id: 29, name: 'Cyclassics Hamburg', stage: 'One Day', index: 143 },
+    { id: 30, name: 'Grand Prix Québec', stage: 'One Day', index: 144 },
+    { id: 31, name: 'Grand Prix Montréal', stage: 'One Day', index: 145 },
+    { id: 32, name: 'Il Lombardia', stage: 'One Day', index: 146 },
+    { id: 33, name: 'Tour of Guangxi', stage: 'Stage 6', index: 152 },
+];
+
+
+  const [races] = useState<Race[]>(predefinedRaces);
   const [selectedRace, setSelectedRace] = useState<Race | undefined>()
   const [selectedStage, setSelectedStage] = useState<string>('Stage 1')
   const [stages, setStages] = useState<string[]>([])
   const [topCyclists, setTopCyclists] = useState<Cyclist[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [redeploying, setRedeploying] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
+  const [deploymentIndex, setDeploymentIndex] = useState<number | ''>('')
 
   useEffect(() => {
-    axios.get('http://seito.lavbic.net:5010/races')
-      .then((response) => {
-        setRaces(response.data)
-      })
-      .catch((err) => {
-        setError('Failed to load races. Please try again.')
-        console.error(err)
-      })
+    fetchRaces()
   }, [])
+
+  const fetchRaces = async () => {
+    try {
+      const response = await axios.get('http://seito.lavbic.net:5010/races')
+      if (response.data.length > 0 && deploymentIndex === '') {
+        setDeploymentIndex(response.data[0].index)
+      }
+    } catch (err) {
+      setError('Failed to load races. Please try again.')
+      console.error(err)
+    }
+  }
+
+  const handleRedeploy = async () => {
+    if (deploymentIndex === '') {
+      setError('Please select a deployment index')
+      return
+    }
+    
+    setRedeploying(true)
+    setError(null)
+    
+    try {
+      await axios.post('http://seito.lavbic.net:5010/redeploy', {
+        index: deploymentIndex
+      })
+      
+      // Refresh the races list first
+      await fetchRaces()
+      
+      // Then reload the page
+      window.location.reload()
+    } catch (err) {
+      console.error('Redeployment failed:', err)
+      setError('Redeployment failed. Please try again.')
+    } finally {
+      setRedeploying(false)
+    }
+  }
 
   const handleRaceChange = async (race: Race) => {
     setSelectedRace(race)
@@ -51,12 +123,10 @@ export default function CyclingRacePredictor() {
     }
 
     try {
-      if (race.stage === 'One_Day') {
-        // Handle one-day races
+      if (race.stage === 'One Day') {
         setStages([])
         await fetchPredictions(race.index)
       } else if (race.stage.startsWith('Stage')) {
-        // Handle stage races
         const raceStages = races.filter(r => r.name === race.name)
         
         const totalStages = Math.max(...raceStages.map(r => {
@@ -122,7 +192,41 @@ export default function CyclingRacePredictor() {
     <div className="min-h-screen bg-cover bg-center p-4">
       <div className="max-w-4xl mx-auto bg-white/95 backdrop-blur-sm rounded-lg shadow-lg">
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-center mb-6">Cycling Race Predictor</h2>
+          <div className="flex flex-col space-y-4 mb-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Cycling Race Predictor</h2>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <label htmlFor="deploymentIndex" className="text-sm font-medium text-gray-700">
+                    Race to redeploy:
+                  </label>
+                  <select
+                    id="deploymentIndex"
+                    value={deploymentIndex}
+                    onChange={(e) => setDeploymentIndex(e.target.value ? Number(e.target.value) : '')}
+                    className="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">Select race</option>
+                    {races.map((race) => (
+                      <option key={race.index} value={race.index}>
+                        {race.index} - {race.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={handleRedeploy}
+                  disabled={redeploying || deploymentIndex === ''}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-md text-white 
+                    ${(redeploying || deploymentIndex === '') ? 'bg-gray-400' : 'bg-primary hover:bg-primary/90'}`}
+                >
+                  <RefreshCw className={`h-5 w-5 ${redeploying ? 'animate-spin' : ''}`} />
+                  <span>{redeploying ? 'Redeploying...' : 'Redeploy Model'}</span>
+                </button>
+              </div>
+            </div>
+            {error && <p className="text-center text-red-500">{error}</p>}
+          </div>
           
           <div className="relative mb-6">
             <button

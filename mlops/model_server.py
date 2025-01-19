@@ -10,19 +10,10 @@ import os
 import json
 
 # Define paths of files
-rider_names_path = "./rider_names_test.npy"
-data_path = "./X_test.npy"
-image_dir = "../common/images"
-race_names_path = "../common/race_names.csv"
-
-# Load the rider names
-rider_names = np.load(rider_names_path, allow_pickle=True)
-
-# Load the data
-X_test = np.load(data_path, allow_pickle=True)
-
-# Load the race names data
-race_names_data = pd.read_csv(race_names_path)
+rider_names_path = "/home/bsc/MLOps_diploma_app/mlops/rider_names_test.npy"
+data_path = "/home/bsc/MLOps_diploma_app/mlops/X_test.npy"
+image_dir = "/home/bsc/MLOps_diploma_app/common/images"
+race_names_path = "/home/bsc/MLOps_diploma_app/common/race_names.csv"
 
 # Initialize logging
 logging.basicConfig(
@@ -96,8 +87,8 @@ def get_image(filename):
     
 @app.route('/races')
 def get_races():
-    global race_names_data
-    race_names = race_names_data.copy()
+    race_names = pd.read_csv(race_names_path)
+    X_test = np.load(data_path, allow_pickle=True)
     length = len(X_test)
     race_names = race_names.tail(length)
     race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
@@ -113,6 +104,8 @@ def get_races():
     
 @app.route('/predict', methods=['POST'])
 def predict():
+    X_test = np.load(data_path, allow_pickle=True)
+    rider_names = np.load(rider_names_path, allow_pickle=True)
     try:
         # Parse the incoming request
         data = request.get_json(force=True)
