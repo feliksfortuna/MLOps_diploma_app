@@ -64,23 +64,24 @@ if has_changes "common"; then
     log_message "Changes detected in Common directory. Redeploying frontends..."
     cd "$FRONTEND_DIR" || handle_error "Failed to navigate to Common directory"
     
-    # MLOps Frontend
+    # Create separate directories for each frontend
+    mkdir -p mlops-app devops-app
+    
+    # Deploy MLOps Frontend
     log_message "Redeploying MLOps frontend..."
-    rm -rf .next-mlops-tmp
-    cp -r .next-mlops .next-mlops-tmp
+    cd "$FRONTEND_DIR/mlops-app" || handle_error "Failed to navigate to MLOps app directory"
     rm -rf .next
-    mv .next-mlops-tmp .next
+    cp -r ../next-mlops/* .
     pm2 delete mlops 2>/dev/null || true
-    pm2 start "/home/bsc/.bun/bin/bun next start -p 3001" --name mlops
-
-    # DevOps Frontend
+    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start -p 3001" --name mlops
+    
+    # Deploy DevOps Frontend
     log_message "Redeploying DevOps frontend..."
-    rm -rf .next-devops-tmp
-    cp -r .next-devops .next-devops-tmp
+    cd "$FRONTEND_DIR/devops-app" || handle_error "Failed to navigate to DevOps app directory"
     rm -rf .next
-    mv .next-devops-tmp .next
+    cp -r ../next-devops/* .
     pm2 delete devops 2>/dev/null || true
-    pm2 start "/home/bsc/.bun/bin/bun next start -p 3002" --name devops
+    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start -p 3002" --name devops
     
     log_message "Frontend services redeployed"
 fi
