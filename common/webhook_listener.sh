@@ -137,18 +137,18 @@ if has_changes "common"; then
     log_message "Stopping existing frontend services..."
     pm2 delete mlops 2>/dev/null || true
     pm2 delete devops 2>/dev/null || true
-    sleep 5  # Give PM2 time to clean up
+    sleep 3  # Give PM2 time to clean up
 
     # MLOps Frontend
     log_message "Deploying MLOps frontend..."
-    rm -rf mlops-app
-    mkdir -p mlops-app/.next
-    cp -r .next-mlops/* mlops-app/.next/ || handle_error "Failed to copy MLOps build files"
+    # rm -rf mlops-app
+    # mkdir -p mlops-app/.next
+    # cp -r .next-mlops/* mlops-app/.next/ || handle_error "Failed to copy MLOps build files"
     force_sync
     
-    cd mlops-app || handle_error "Failed to navigate to MLOps app directory"
-    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start -p 3001" --name mlops
-    sleep 5
+    # cd mlops-app || handle_error "Failed to navigate to MLOps app directory"
+    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start ./.next-mlops -p 3001" --name mlops
+    sleep 3
     
     # Verify MLOps frontend is running
     if ! pm2 pid mlops > /dev/null; then
@@ -158,14 +158,14 @@ if has_changes "common"; then
     # DevOps Frontend
     cd "$FRONTEND_DIR" || handle_error "Failed to navigate back to Frontend directory"
     log_message "Deploying DevOps frontend..."
-    rm -rf devops-app
-    mkdir -p devops-app/.next
-    cp -r .next-devops/* devops-app/.next/ || handle_error "Failed to copy DevOps build files"
+    # rm -rf devops-app
+    # mkdir -p devops-app/.next
+    # cp -r .next-devops/* devops-app/.next/ || handle_error "Failed to copy DevOps build files"
     force_sync
     
-    cd devops-app || handle_error "Failed to navigate to DevOps app directory"
-    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start -p 3002" --name devops
-    sleep 5
+    # cd devops-app || handle_error "Failed to navigate to DevOps app directory"
+    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start ./.next-devops -p 3002" --name devops
+    sleep 3
     
     # Verify DevOps frontend is running
     if ! pm2 pid devops > /dev/null; then
