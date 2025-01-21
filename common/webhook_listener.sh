@@ -109,7 +109,7 @@ if has_changes "common"; then
     log_message "Deploying MLOps frontend..."
     cd "$FRONTEND_DIR/mlops-app" || handle_error "Failed to navigate to MLOps app directory"
     mkdir -p .next
-    cp -r ../next-mlops/* .next/ || handle_error "Failed to copy MLOps build files"
+    cp -r ../.next-mlops/* .next/ || handle_error "Failed to copy MLOps build files"
     verify_directory ".next" "build-manifest.json"
     
     log_message "Starting MLOps frontend..."
@@ -120,7 +120,7 @@ if has_changes "common"; then
     log_message "Deploying DevOps frontend..."
     cd "$FRONTEND_DIR/devops-app" || handle_error "Failed to navigate to DevOps app directory"
     mkdir -p .next
-    cp -r ../next-devops/* .next/ || handle_error "Failed to copy DevOps build files"
+    cp -r ../.next-devops/* .next/ || handle_error "Failed to copy DevOps build files"
     verify_directory ".next" "build-manifest.json"
     
     log_message "Starting DevOps frontend..."
