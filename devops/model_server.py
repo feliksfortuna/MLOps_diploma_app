@@ -7,7 +7,7 @@ import os
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost", "http://seito.lavbic.net", "https://ultimate-krill-officially.ngrok-free.app"]}})
+CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://seito.lavbic.net:3002"]}})
 
 # Define paths of files
 model_path = "/home/bsc/MLOps_diploma_app/devops/model/model.pkl"
