@@ -37,6 +37,8 @@ has_changes() {
 # Reset git changes
 git reset --hard HEAD >> "$LOG_FILE" 2>&1 || handle_error "Failed to reset git changes"
 
+sleep 1
+
 # Handle MLOps directory changes
 if has_changes "mlops"; then
     log_message "Changes detected in MLOps directory. Redeploying..."
