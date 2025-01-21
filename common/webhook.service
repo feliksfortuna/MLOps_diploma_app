@@ -8,7 +8,7 @@ User=bsc
 WorkingDirectory=/home/bsc/MLOps_diploma_app/common
 Environment=HOME=/home/bsc
 Environment=PATH=/home/bsc/mlflow-env/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=/home/bsc/mlflow-env/bin/python webhook_server.py
+ExecStart=/home/bsc/mlflow-env/bin/gunicorn -w 1 -b 0.0.0.0:8000 webhook_server:app
 Restart=always
 RestartSec=10
 StandardOutput=append:/home/bsc/MLOps_diploma_app/common/webhook.log
