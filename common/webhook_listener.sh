@@ -7,6 +7,7 @@ LOG_FILE="$SCRIPT_DIR/webhook_redeploy.log"
 MLOPS_DIR="$REPO_DIR/mlops"
 COMMON_DIR="$REPO_DIR/common"
 DEVOPS_DIR="$REPO_DIR/devops"
+FRONTEND_DIR="$REPO_DIR/common/app-frontend"
 
 # Logging function
 log_message() {
@@ -55,7 +56,7 @@ fi
 # Handle Common directory changes (Frontend)
 if has_changes "common"; then
     log_message "Changes detected in Common directory. Redeploying frontends..."
-    cd "$COMMON_DIR" || handle_error "Failed to navigate to Common directory"
+    cd "$FRONTEND_DIR" || handle_error "Failed to navigate to Common directory"
     
     # MLOps Frontend
     log_message "Redeploying MLOps frontend..."
