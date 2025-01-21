@@ -2,7 +2,7 @@
 
 # Get the absolute path of the script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"  # Go up two levels from common dir
+REPO_DIR="$(dirname "$SCRIPT_DIR")"  # Go up two levels from common dir
 LOG_FILE="$SCRIPT_DIR/webhook_redeploy.log"
 MLOPS_DIR="$REPO_DIR/mlops"
 COMMON_DIR="$REPO_DIR/common"
