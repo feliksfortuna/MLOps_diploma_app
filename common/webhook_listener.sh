@@ -185,4 +185,12 @@ if has_changes "common"; then
     log_message "Frontend services redeployed successfully"
 fi
 
+# Handle DevOps directory changes
+if has_changes "devops"; then
+    log_message "Changes detected in DevOps directory. Redeploying..."
+    cd "$DEVOPS_DIR" || handle_error "Failed to navigate to DevOps directory"
+    bash ./redeploy_model.sh >> "$LOG_FILE" 2>&1
+    log_message "DevOps services redeployed"
+fi
+
 log_message "Webhook processing completed successfully"
