@@ -60,7 +60,7 @@ redeploy_mlops_backend() {
 redeploy_devops_backend() {
     log_message "Redeploying DevOps backend..."
     cd "$DEVOPS_DIR" || handle_error "Failed to navigate to DevOps directory"
-    bash ./redeploy_model.sh >> "$LOG_FILE" 2>&1
+    nohup ./redeploy_model.sh > redeploy.log 2>&1 &
     log_message "DevOps backend redeployed"
 }
 
