@@ -45,7 +45,7 @@ def make_request_with_retries(index):
         raise
 
 @app.route('/redeploy', methods=['POST'])
-def redeploy():
+async def redeploy():
     try:
         logging.info("Received request for /redeploy endpoint.")
         # Get the index from the request
