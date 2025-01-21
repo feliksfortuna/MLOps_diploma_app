@@ -19,3 +19,5 @@ rider_season_data.csv
 __pycache__
 
 mlruns/
+
+common/app-frontend

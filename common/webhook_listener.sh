@@ -143,10 +143,10 @@ if has_changes "common"; then
     log_message "Deploying MLOps frontend..."
     # Create fresh directories for MLOps
     rm -rf mlops-app
-    mkdir -p mlops-app
+    mkdir -p mlops-app/.next
     
     # Copy the entire pre-built directory including static files
-    cp -r .next-mlops/* mlops-app/ || handle_error "Failed to copy MLOps build files"
+    cp -r .next-mlops/* mlops-app/.next || handle_error "Failed to copy MLOps build files"
     cp -r .next-mlops/.next mlops-app/ || handle_error "Failed to copy MLOps .next directory"
     cp -r .next-mlops/public mlops-app/ || handle_error "Failed to copy MLOps public directory"
     force_sync
