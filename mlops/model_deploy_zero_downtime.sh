@@ -119,6 +119,7 @@ stop_mlflow_server() {
 
 # Function to update nginx proxy
 update_nginx_proxy() {
+    SUDO_PASSWORD=$(cat /home/bsc/.sudo_password)
     local port="$1"
     echo "Updating Nginx to route traffic to port $port..."
     
