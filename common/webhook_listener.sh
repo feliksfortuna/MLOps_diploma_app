@@ -127,63 +127,63 @@ if has_changes "mlops"; then
 fi
 
 # Handle Frontend changes
-if has_changes "common"; then
-    log_message "Changes detected in Common directory. Waiting for changes to sync..."
-    verify_changes "$COMMON_DIR"
+# if has_changes "common"; then
+#     log_message "Changes detected in Common directory. Waiting for changes to sync..."
+#     verify_changes "$COMMON_DIR"
     
-    cd "$FRONTEND_DIR" || handle_error "Failed to navigate to Frontend directory"
-    force_sync  # Ensure files are synced before deployment
+#     cd "$FRONTEND_DIR" || handle_error "Failed to navigate to Frontend directory"
+#     force_sync  # Ensure files are synced before deployment
     
-    log_message "Stopping existing frontend services..."
-    pm2 delete mlops 2>/dev/null || true
-    pm2 delete devops 2>/dev/null || true
-    sleep 3  # Give PM2 time to clean up
+#     log_message "Stopping existing frontend services..."
+#     pm2 delete mlops 2>/dev/null || true
+#     pm2 delete devops 2>/dev/null || true
+#     sleep 3  # Give PM2 time to clean up
 
-    # MLOps Frontend
-    log_message "Deploying MLOps frontend..."
-    # Create fresh directories for MLOps
-    rm -rf mlops-app
-    mkdir -p mlops-app/.next
+#     # MLOps Frontend
+#     log_message "Deploying MLOps frontend..."
+#     # Create fresh directories for MLOps
+#     rm -rf mlops-app
+#     mkdir -p mlops-app/.next
     
-    # Copy the entire pre-built directory including static files
-    cp -r .next-mlops/* mlops-app/.next || handle_error "Failed to copy MLOps build files"
-    cp -r .next-mlops/.next mlops-app/ || handle_error "Failed to copy MLOps .next directory"
-    cp -r .next-mlops/public mlops-app/ || handle_error "Failed to copy MLOps public directory"
-    force_sync
+#     # Copy the entire pre-built directory including static files
+#     cp -r .next-mlops/* mlops-app/.next || handle_error "Failed to copy MLOps build files"
+#     cp -r .next-mlops/.next mlops-app/ || handle_error "Failed to copy MLOps .next directory"
+#     cp -r .next-mlops/public mlops-app/ || handle_error "Failed to copy MLOps public directory"
+#     force_sync
     
-    cd mlops-app || handle_error "Failed to navigate to MLOps app directory"
-    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start -p 3001" --name mlops
-    sleep 3
+#     cd mlops-app || handle_error "Failed to navigate to MLOps app directory"
+#     NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start -p 3001" --name mlops
+#     sleep 3
     
-    # Verify MLOps frontend is running
-    if ! pm2 pid mlops > /dev/null; then
-        handle_error "MLOps frontend failed to start"
-    fi
+#     # Verify MLOps frontend is running
+#     if ! pm2 pid mlops > /dev/null; then
+#         handle_error "MLOps frontend failed to start"
+#     fi
 
-    # DevOps Frontend
-    cd "$FRONTEND_DIR" || handle_error "Failed to navigate back to Frontend directory"
-    log_message "Deploying DevOps frontend..."
-    # Create fresh directories for DevOps
-    rm -rf devops-app
-    mkdir -p devops-app
+#     # DevOps Frontend
+#     cd "$FRONTEND_DIR" || handle_error "Failed to navigate back to Frontend directory"
+#     log_message "Deploying DevOps frontend..."
+#     # Create fresh directories for DevOps
+#     rm -rf devops-app
+#     mkdir -p devops-app
     
-    # Copy the entire pre-built directory including static files
-    cp -r .next-devops/* devops-app/ || handle_error "Failed to copy DevOps build files"
-    cp -r .next-devops/.next devops-app/ || handle_error "Failed to copy DevOps .next directory"
-    cp -r .next-devops/public devops-app/ || handle_error "Failed to copy DevOps public directory"
-    force_sync
+#     # Copy the entire pre-built directory including static files
+#     cp -r .next-devops/* devops-app/ || handle_error "Failed to copy DevOps build files"
+#     cp -r .next-devops/.next devops-app/ || handle_error "Failed to copy DevOps .next directory"
+#     cp -r .next-devops/public devops-app/ || handle_error "Failed to copy DevOps public directory"
+#     force_sync
     
-    cd devops-app || handle_error "Failed to navigate to DevOps app directory"
-    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start -p 3002" --name devops
-    sleep 3
+#     cd devops-app || handle_error "Failed to navigate to DevOps app directory"
+#     NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start -p 3002" --name devops
+#     sleep 3
     
-    # Verify DevOps frontend is running
-    if ! pm2 pid devops > /dev/null; then
-        handle_error "DevOps frontend failed to start"
-    fi
+#     # Verify DevOps frontend is running
+#     if ! pm2 pid devops > /dev/null; then
+#         handle_error "DevOps frontend failed to start"
+#     fi
     
-    log_message "Frontend services redeployed successfully"
-fi
+#     log_message "Frontend services redeployed successfully"
+# fi
 
 # Handle DevOps directory changes
 if has_changes "devops"; then
