@@ -1,5 +1,5 @@
 # webhook_server.py
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify
 from flask_cors import CORS
 import subprocess
 import os
