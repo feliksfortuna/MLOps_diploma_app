@@ -1,4 +1,5 @@
 import logging
+from threading import Thread
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import requests
@@ -45,35 +46,47 @@ def make_request_with_retries(index):
         raise
 
 @app.route('/redeploy', methods=['POST'])
-async def redeploy():
+def redeploy():
     try:
         logging.info("Received request for /redeploy endpoint.")
-        # Get the index from the request
         data = request.get_json(force=True)
         logging.debug(f"Request JSON payload: {data}")
-        
+
         index = data.get('index')
         if index is None:
             logging.warning("Index not provided in request.")
             return jsonify({"error": "Index not provided"}), 400
-        
+
         if not isinstance(index, int):
             logging.warning(f"Invalid index type: {type(index)}. Must be an integer.")
             return jsonify({"error": "Index must be an integer"}), 400
 
-        # Make the request with retries
-        response = make_request_with_retries(index)
+        # Define the background function for redeployment
+        def run_redeployment(idx):
+            try:
+                logging.info(f"Starting redeployment process for index: {idx}")
+                # 1. Make the retraining request with retries
+                response = make_request_with_retries(idx)
 
-        # Preprocess the data for later use on server
-        logging.info(f"Starting data preprocessing for index: {index}")
-        data_process.preprocess_data(index)
-        logging.info("Data preprocessing completed successfully.")
+                # 2. Preprocess the data
+                logging.info(f"Starting data preprocessing for index: {idx}")
+                data_process.preprocess_data(idx)
+                logging.info("Data preprocessing completed successfully.")
 
-        return response.json(), response.status_code
+                logging.info(f"Redeployment completed successfully for index: {idx} "
+                             f"with response: {response.status_code}")
+            except requests.exceptions.RequestException as e:
+                logging.error(f"Redeployment request exception: {e}")
+            except Exception as e:
+                logging.error(f"Unexpected error during redeployment: {e}")
 
-    except requests.exceptions.RequestException as e:
-        logging.error(f"RequestException: {e}")
-        return jsonify({"error": f"Request failed after retries: {str(e)}"}), 500
+        # Spawn the background thread
+        t = Thread(target=run_redeployment, args=(index,))
+        t.start()
+
+        # Return immediately so the server isn't blocked
+        return jsonify({"message": "Redeployment started in background"}), 200
+
     except Exception as e:
         logging.error(f"Unexpected error occurred: {e}")
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
