@@ -2,7 +2,7 @@
 
 # Get the absolute path of the script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_DIR="$(dirname "$SCRIPT_DIR")"  # Go up two levels from common dir
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
 LOG_FILE="$SCRIPT_DIR/webhook_redeploy.log"
 MLOPS_DIR="$REPO_DIR/mlops"
 COMMON_DIR="$REPO_DIR/common"
@@ -22,22 +22,26 @@ handle_error() {
 
 # Navigate to the repo and fetch the latest changes
 cd "$REPO_DIR" || handle_error "Failed to navigate to $REPO_DIR"
-git pull origin main >> "$LOG_FILE" 2>&1 || handle_error "Failed to pull from git"
 
-# Get changed files
-CHANGED_FILES=$(git diff --name-only HEAD@{1} HEAD)
-log_message "Changed files: $CHANGED_FILES"
+# Store the current commit hash before pulling
+OLD_HASH=$(git rev-parse HEAD)
+
+# Fetch and reset to origin/main to ensure we have the latest changes
+git fetch origin main >> "$LOG_FILE" 2>&1 || handle_error "Failed to fetch from git"
+git reset --hard origin/main >> "$LOG_FILE" 2>&1 || handle_error "Failed to reset to origin/main"
+
+# Get new commit hash
+NEW_HASH=$(git rev-parse HEAD)
+
+# Get changed files between the old and new commit
+CHANGED_FILES=$(git diff --name-only $OLD_HASH $NEW_HASH)
+log_message "Changed files between $OLD_HASH and $NEW_HASH: $CHANGED_FILES"
 
 # Function to check if directory has changes
 has_changes() {
     local dir=$1
     echo "$CHANGED_FILES" | grep -q "^${dir}/"
 }
-
-# Reset git changes
-git reset --hard HEAD >> "$LOG_FILE" 2>&1 || handle_error "Failed to reset git changes"
-
-sleep 1
 
 # Handle MLOps directory changes
 if has_changes "mlops"; then
@@ -62,19 +66,19 @@ if has_changes "common"; then
     
     # MLOps Frontend
     log_message "Redeploying MLOps frontend..."
+    rm -rf .next-mlops-tmp
+    cp -r .next-mlops .next-mlops-tmp
     rm -rf .next
-    mkdir .next
-    cp -r .next-mlops/* .next
+    mv .next-mlops-tmp .next
     pm2 delete mlops 2>/dev/null || true
     pm2 start "/home/bsc/.bun/bin/bun next start -p 3001" --name mlops
-    
-    sleep 2
 
     # DevOps Frontend
     log_message "Redeploying DevOps frontend..."
-    # rm -rf .next
-    # mkdir .next
-    # cp -r .next-devops/* .next
+    rm -rf .next-devops-tmp
+    cp -r .next-devops .next-devops-tmp
+    rm -rf .next
+    mv .next-devops-tmp .next
     pm2 delete devops 2>/dev/null || true
     pm2 start "/home/bsc/.bun/bin/bun next start -p 3002" --name devops
     
