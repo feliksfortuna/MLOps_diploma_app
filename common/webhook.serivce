@@ -1,0 +1,18 @@
+# webhook.service
+[Unit]
+Description=Git Webhook Server
+After=network.target
+
+[Service]
+Type=simple
+User=bsc
+WorkingDirectory=/home/bsc/MLOps_diploma_app/common
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 webhook_server.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/bsc/MLOps_diploma_app/common/webhook.log
+StandardError=append:/home/bsc/MLOps_diploma_app/common/webhook.error.log
+
+[Install]
+WantedBy=multi-user.target
