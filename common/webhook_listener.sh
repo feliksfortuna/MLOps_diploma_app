@@ -96,7 +96,7 @@ if has_changes "mlops"; then
         handle_error "Deployment script failed to start"
     fi
     
-    nohup gunicorn -w 1 -b 0.0.0.0:5010 model_server:app --timeout 300 > server.log 2>&1 &
+    nohup gunicorn -w 2 -b 0.0.0.0:5010 model_server:app --timeout 300 > server.log 2>&1 &
     sleep 5
     
     if ! pgrep -f "gunicorn.*:5010" > /dev/null; then
