@@ -23,7 +23,7 @@ logging.basicConfig(
 )
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": ["http://localhost", "http://seito.lavbic.net", "https://ultimate-krill-officially.ngrok-free.app"]}})
 
 url = "https://ultimate-krill-officially.ngrok-free.app/retrain"
 

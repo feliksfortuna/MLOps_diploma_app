@@ -219,5 +219,5 @@ while true; do
         echo "No model updates detected."
     fi
     
-    sleep 60
+    sleep 20
 done

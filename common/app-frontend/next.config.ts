@@ -18,7 +18,12 @@ const nextConfig: NextConfig = (phase: string) => {
   return {
     images: {
       dangerouslyAllowSVG: true,
-      remotePatterns: ["seito.lavbic.net"],
+      remotePatterns: [
+        {
+          protocol: 'https',
+          hostname: 'seito.lavbic.net',
+        },
+      ],
       contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     },
     env,

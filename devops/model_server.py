@@ -7,14 +7,14 @@ import os
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": ["http://localhost", "http://seito.lavbic.net", "https://ultimate-krill-officially.ngrok-free.app"]}})
 
 # Define paths of files
-model_path = "./model/model.pkl"
-rider_names_path = "./rider_names_test.npy"
-data_path = "./X_test.npy"
-image_dir = "../common/images"
-race_names_path = "../common/race_names.csv"
+model_path = "/home/bsc/MLOps_diploma_app/devops/model/model.pkl"
+rider_names_path = "/home/bsc/MLOps_diploma_app/devops/rider_names_test.npy"
+data_path = "/home/bsc/MLOps_diploma_app/devops/X_test.npy"
+image_dir = "/home/bsc/MLOps_diploma_app/common/images"
+race_names_path = "/home/bsc/MLOps_diploma_app/common/race_names.csv"
 
 @app.route('/predict', methods=['POST'])
 def predict():
