@@ -1,4 +1,3 @@
-# webhook.service
 [Unit]
 Description=Git Webhook Server
 After=network.target
@@ -8,7 +7,9 @@ Type=simple
 User=bsc
 WorkingDirectory=/home/bsc/MLOps_diploma_app/common
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/usr/bin/python3 webhook_server.py
+Environment=PYENV_ROOT=/home/bsc/.pyenv
+Environment=PATH=/home/bsc/.pyenv/versions/mlflow-env/bin:${PATH}
+ExecStart=/home/bsc/.pyenv/versions/mlflow-env/bin/python webhook_server.py
 Restart=always
 RestartSec=10
 StandardOutput=append:/home/bsc/MLOps_diploma_app/common/webhook.log
