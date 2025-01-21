@@ -147,7 +147,7 @@ if has_changes "common"; then
     force_sync
     
     # cd mlops-app || handle_error "Failed to navigate to MLOps app directory"
-    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start ./.next-mlops -p 3001" --name mlops
+    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start -p 3001" --name mlops --cwd ./.next-mlops
     sleep 3
     
     # Verify MLOps frontend is running
@@ -164,7 +164,7 @@ if has_changes "common"; then
     force_sync
     
     # cd devops-app || handle_error "Failed to navigate to DevOps app directory"
-    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start ./.next-devops -p 3002" --name devops
+    NODE_ENV=production pm2 start "/home/bsc/.bun/bin/bun next start -p 3002" --name devops --cwd ./.next-devops
     sleep 3
     
     # Verify DevOps frontend is running

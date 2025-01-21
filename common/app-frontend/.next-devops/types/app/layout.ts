@@ -1,4 +1,4 @@
-// File: /home/bsc/MLOps_diploma_app/common/app-frontend/src/app/layout.tsx
+// File: /Users/feliks/Documents/Faks/Diplomska/App/common/app-frontend/src/app/layout.tsx
 import * as entry from '../../../src/app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

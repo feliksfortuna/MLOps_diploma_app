@@ -1,1 +1,1 @@
-self.__NEXT_FONT_MANIFEST='{"pages":{},"app":{"/home/bsc/MLOps_diploma_app/common/app-frontend/src/app/layout":["static/media/a34f9d1faa5f3315-s.p.woff2"]},"appUsingSizeAdjust":true,"pagesUsingSizeAdjust":false}';
+self.__NEXT_FONT_MANIFEST='{"pages":{},"app":{"/Users/feliks/Documents/Faks/Diplomska/App/common/app-frontend/src/app/layout":["static/media/a34f9d1faa5f3315-s.p.woff2"]},"appUsingSizeAdjust":true,"pagesUsingSizeAdjust":false}';
