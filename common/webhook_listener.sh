@@ -72,9 +72,9 @@ if has_changes "common"; then
 
     # DevOps Frontend
     log_message "Redeploying DevOps frontend..."
-    rm -rf .next
-    mkdir .next
-    cp -r .next-devops/* .next
+    # rm -rf .next
+    # mkdir .next
+    # cp -r .next-devops/* .next
     pm2 delete devops 2>/dev/null || true
     pm2 start "/home/bsc/.bun/bin/bun next start -p 3002" --name devops
     
