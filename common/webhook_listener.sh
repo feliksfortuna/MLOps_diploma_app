@@ -29,11 +29,14 @@ has_changes() {
 # Check if webhook server itself changed
 if has_changes "common"; then
     log_message "Webhook scripts changed, restarting webhook server..."
-    pkill -f "python.*webhook_server.py" || true
-    cd "$SCRIPT_DIR" || handle_error "Failed to navigate to script directory"
-    nohup python webhook_server.py > webhook_server.log 2>&1 &
-    log_message "Webhook server restarted"
+    SUDO_PASSWORD=$(cat /home/bsc/.sudo_password)
 
+    # Pass the password to sudo using -S
+    if echo "$SUDO_PASSWORD" | sudo -S systemctl restart myservice; then
+        echo "Successfully restarted myservice via systemctl."
+    else
+        echo "Failed to restart myservice."
+    fi
 
     # Log the changes
     log_message "Changes detected in Common directory. Waiting for changes to sync..."
