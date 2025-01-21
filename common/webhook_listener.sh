@@ -60,19 +60,19 @@ if has_changes "common"; then
     
     # MLOps Frontend
     log_message "Redeploying MLOps frontend..."
-    rm -rf .next
-    mkdir .next
-    cp -r .next-mlops/* .next
+    # rm -rf .next
+    # mkdir .next
+    # cp -r .next-mlops/* .next
     pm2 delete mlops 2>/dev/null || true
-    pm2 start "/home/bsc/.bun/bin/bun next start -p 3001" --name mlops
+    pm2 start "/home/bsc/.bun/bin/bun next start -p 3001 .next-mlops" --name mlops
     
     # DevOps Frontend
     log_message "Redeploying DevOps frontend..."
-    rm -rf .next
-    mkdir .next
-    cp -r .next-devops/* .next
+    # rm -rf .next
+    # mkdir .next
+    # cp -r .next-devops/* .next
     pm2 delete devops 2>/dev/null || true
-    pm2 start "/home/bsc/.bun/bin/bun next start -p 3002" --name devops
+    pm2 start "/home/bsc/.bun/bin/bun next start -p 3002 .next-devops" --name devops
     
     log_message "Frontend services redeployed"
 fi
