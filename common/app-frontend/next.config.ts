@@ -3,7 +3,7 @@ import { PHASE_PRODUCTION_BUILD } from "next/constants";
 
 const nextConfig = (phase: string): NextConfig => {
   const isProductionBuild = phase === PHASE_PRODUCTION_BUILD;
-  const deploymentType = process.env.NEXT_PUBLIC_DEPLOYMENT_TYPE || "default";
+  const deploymentType = process.env.NEXT_PUBLIC_DEPLOYMENT_TYPE ?? "default";
 
   const env = {
     NEXT_PUBLIC_DEPLOYMENT_TYPE: deploymentType,
