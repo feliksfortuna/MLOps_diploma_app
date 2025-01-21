@@ -63,7 +63,7 @@ if has_changes "common"; then
     mkdir .next
     cp -r .next-mlops/* .next
     pm2 delete mlops 2>/dev/null || true
-    pm2 start "bun next start -p 3001" --name mlops
+    pm2 start "/home/bsc/.bun/bin/bun next start -p 3001" --name mlops
     
     # DevOps Frontend
     log_message "Redeploying DevOps frontend..."
@@ -71,7 +71,7 @@ if has_changes "common"; then
     mkdir .next
     cp -r .next-devops/* .next
     pm2 delete devops 2>/dev/null || true
-    pm2 start "bun next start -p 3002" --name devops
+    pm2 start "/home/bsc/.bun/bin/bun next start -p 3002" --name devops
     
     log_message "Frontend services redeployed"
 fi
