@@ -6,10 +6,9 @@ After=network.target
 Type=simple
 User=bsc
 WorkingDirectory=/home/bsc/MLOps_diploma_app/common
-Environment=PYTHONUNBUFFERED=1
-Environment=PYENV_ROOT=/home/bsc/.pyenv
-Environment=PATH=/home/bsc/.pyenv/versions/mlflow-env/bin:${PATH}
-ExecStart=/home/bsc/.pyenv/versions/mlflow-env/bin/python webhook_server.py
+Environment=HOME=/home/bsc
+Environment=PATH=/home/bsc/mlflow-env/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/bsc/mlflow-env/bin/python webhook_server.py
 Restart=always
 RestartSec=10
 StandardOutput=append:/home/bsc/MLOps_diploma_app/common/webhook.log
