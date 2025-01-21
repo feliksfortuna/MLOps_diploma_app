@@ -63,7 +63,7 @@ if has_changes "common"; then
 
     # DevOps Frontend Deployment
     log_message "Deploying DevOps frontend..."
-    cd "$COMMON_DIR/devops" || handle_error "Failed to navigate to DevOps app directory"
+    cd "$COMMON_DIR/devops-frontend" || handle_error "Failed to navigate to DevOps app directory"
     force_sync
 
     # Start DevOps Frontend
