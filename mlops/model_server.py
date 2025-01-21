@@ -61,34 +61,52 @@ def redeploy():
             logging.warning(f"Invalid index type: {type(index)}. Must be an integer.")
             return jsonify({"error": "Index must be an integer"}), 400
 
-        # Define the background function for redeployment
-        def run_redeployment(idx):
+        # Define the function that performs the heavy redeployment steps
+        def run_redeployment(idx, status_container):
             try:
                 logging.info(f"Starting redeployment process for index: {idx}")
-                # 1. Make the retraining request with retries
+
+                # 1) Make the external retraining request (with retries)
                 response = make_request_with_retries(idx)
 
-                # 2. Preprocess the data
+                # 2) Preprocess the data
                 logging.info(f"Starting data preprocessing for index: {idx}")
                 data_process.preprocess_data(idx)
                 logging.info("Data preprocessing completed successfully.")
 
-                logging.info(f"Redeployment completed successfully for index: {idx} "
-                             f"with response: {response.status_code}")
-            except requests.exceptions.RequestException as e:
-                logging.error(f"Redeployment request exception: {e}")
+                # Store the response so we can return it
+                status_container['response'] = response
+                status_container['exception'] = None
             except Exception as e:
-                logging.error(f"Unexpected error during redeployment: {e}")
+                logging.error(f"Redeployment failed: {e}")
+                # Capture the exception to re-raise in main thread
+                status_container['exception'] = e
+                status_container['response'] = None
+
+        # We'll use a dict to capture the response or exception in the background thread
+        thread_status = {'response': None, 'exception': None}
 
         # Spawn the background thread
-        t = Thread(target=run_redeployment, args=(index,))
+        t = Thread(target=run_redeployment, args=(index, thread_status))
         t.start()
 
-        # Return immediately so the server isn't blocked
-        return jsonify({"message": "Redeployment started in background"}), 200
+        # Block until the redeployment finishes (the user sees the request “loading”)
+        t.join()
+
+        # If an exception occurred, re-raise it here so we can return an error response
+        if thread_status['exception'] is not None:
+            e = thread_status['exception']
+            if isinstance(e, requests.exceptions.RequestException):
+                return jsonify({"error": f"Request failed after retries: {str(e)}"}), 500
+            else:
+                return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+
+        # Otherwise, thread_status['response'] holds the successful response object
+        response = thread_status['response']
+        return response.json(), response.status_code
 
     except Exception as e:
-        logging.error(f"Unexpected error occurred: {e}")
+        logging.error(f"Unexpected error occurred in /redeploy: {e}")
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
     
 @app.route('/images/<filename>')
