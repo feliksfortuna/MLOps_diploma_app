@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST='{"app/predictor/page.tsx -> @/components/cycling-race-predictor-devops":{"id":1483,"files":["static/chunks/137.daabf9384f47e62b.js","static/chunks/483.a9eebe416d58cc92.js"]},"app/predictor/page.tsx -> @/components/cycling-race-predictor-mlops":{"id":5011,"files":["static/chunks/137.daabf9384f47e62b.js","static/chunks/11.a7f9be55d1dd3f01.js"]}}';
