@@ -81,25 +81,22 @@ if has_changes "common"; then
         log_message "Failed to restart myservice."
     fi
 
-    # 2) Wait for changes to sync (if you have such a function)
-    #    verify_changes "$COMMON_DIR"
-
-    # 3) Stop existing frontends
+    # 2) Stop existing frontends
     log_message "Stopping existing frontend services..."
     pm2 delete mlops 2>/dev/null || true
     pm2 delete devops 2>/dev/null || true
     sleep 3
 
-    # 4) Redeploy MLOps Frontend
+    # 3) Redeploy MLOps Frontend
     log_message "Deploying MLOps frontend..."
     cd "$COMMON_DIR/mlops-frontend" || handle_error "Failed to navigate to MLOps app directory"
-    force_sync    # (If you have some function for forced sync/pull)
+    force_sync
     pm2 start "/home/bsc/.bun/bin/bun next start -p 3001" --name mlops
     if ! pm2 pid mlops > /dev/null; then
         handle_error "MLOps frontend failed to start"
     fi
 
-    # 5) Redeploy DevOps Frontend
+    # 4) Redeploy DevOps Frontend
     log_message "Deploying DevOps frontend..."
     cd "$COMMON_DIR/devops-frontend" || handle_error "Failed to navigate to DevOps app directory"
     force_sync
@@ -108,10 +105,10 @@ if has_changes "common"; then
         handle_error "DevOps frontend failed to start"
     fi
 
-    # 6) Also redeploy MLOps backend
+    # 5) Also redeploy MLOps backend
     redeploy_mlops_backend
 
-    # 7) Also redeploy DevOps backend
+    # 6) Also redeploy DevOps backend
     redeploy_devops_backend
 
     log_message "All common-based redeployments done successfully"

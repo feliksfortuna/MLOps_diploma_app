@@ -44,12 +44,12 @@ def retrain():
     y_test = np.load('/Users/feliks/Documents/Faks/Diplomska/App/mlops/y_test.npy', allow_pickle=True)
 
     # Flatten the data for scikit-learn models
-    X_train_flat = X_train.reshape(-1, X_train.shape[2])    # Shape: (num_races_train * max_riders, num_features)
-    X_test_flat = X_test.reshape(-1, X_test.shape[2])       # Shape: (num_races_test * max_riders, num_features)
+    X_train_flat = X_train.reshape(-1, X_train.shape[2])
+    X_test_flat = X_test.reshape(-1, X_test.shape[2])
 
     # Flatten the targets
-    y_train_flat = y_train.flatten()  # Shape: (num_races_train * max_riders,)
-    y_test_flat = y_test.flatten()    # Shape: (num_races_test * max_riders,)
+    y_train_flat = y_train.flatten()
+    y_test_flat = y_test.flatten()
 
     # Create datasets
     train_dataset = RaceRegressionDataset(X_train_flat, y_train_flat)

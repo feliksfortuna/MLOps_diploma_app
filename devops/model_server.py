@@ -4,48 +4,74 @@ import pandas as pd
 import numpy as np
 import pickle
 import os
+import logging
+from tenacity import retry, stop_after_attempt, wait_fixed, RetryError
+
+# Configuration
+MODEL_PATH = os.getenv("MODEL_PATH", "/home/bsc/MLOps_diploma_app/devops/model/model.pkl")
+RIDER_NAMES_PATH = os.getenv("RIDER_NAMES_PATH", "/home/bsc/MLOps_diploma_app/devops/rider_names_test.npy")
+DATA_PATH = os.getenv("DATA_PATH", "/home/bsc/MLOps_diploma_app/devops/X_test.npy")
+IMAGE_DIR = os.getenv("IMAGE_DIR", "/home/bsc/MLOps_diploma_app/common/images")
+RACE_NAMES_PATH = os.getenv("RACE_NAMES_PATH", "/home/bsc/MLOps_diploma_app/common/race_names.csv")
+APP_PORT = int(os.getenv("APP_PORT", 15000))
+
+# Logging configuration
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://seito.lavbic.net:3002"]}})
 
-# Define paths of files
-model_path = "/home/bsc/MLOps_diploma_app/devops/model/model.pkl"
-rider_names_path = "/home/bsc/MLOps_diploma_app/devops/rider_names_test.npy"
-data_path = "/home/bsc/MLOps_diploma_app/devops/X_test.npy"
-image_dir = "/home/bsc/MLOps_diploma_app/common/images"
-race_names_path = "/home/bsc/MLOps_diploma_app/common/race_names.csv"
+# Retry decorator for transient errors
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
+def load_file_with_retries(filepath, loader_fn):
+    """Retries file loading in case of transient issues."""
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found: {filepath}")
+    logger.info(f"Loading file: {filepath}")
+    return loader_fn(filepath)
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Get the index from the POST request
+        # Validate and parse request JSON
         data = request.get_json(force=True)
-        race_index = data['index']
+        race_index = data.get('index')
+        if race_index is None or not isinstance(race_index, int):
+            return jsonify({"error": "Invalid or missing 'index'. It must be an integer."}), 400
 
-        # Load the rider names
-        rider_names = np.load(rider_names_path, allow_pickle=True)
+        # Load rider names and test data
+        rider_names = load_file_with_retries(RIDER_NAMES_PATH, lambda f: np.load(f, allow_pickle=True))
+        X_test = load_file_with_retries(DATA_PATH, lambda f: np.load(f, allow_pickle=True))
 
-        # Load the data
-        X_test = np.load(data_path, allow_pickle=True)
-
+        # Validate race_index bounds
         if race_index < 0 or race_index >= len(X_test):
-            return jsonify({"error": "Invalid index"}), 400
-        
-        # Get the data for the specified race
-        race_data = X_test[race_index].astype(np.float32)  # Shape: (num_riders, num_features)
+            return jsonify({"error": "Index out of bounds."}), 400
+
+        # Get data for the specified race
+        race_data = X_test[race_index].astype(np.float32)
 
         # Load the pickled model
-        with open(model_path, 'rb') as f:
-            loaded_model = pickle.load(f)
-        
-        # Get predictions for all riders in the race
-        prediction = loaded_model.predict(race_data)  # Shape: (num_riders,)
+        try:
+            with open(MODEL_PATH, 'rb') as f:
+                loaded_model = pickle.load(f)
+        except Exception as e:
+            logger.error(f"Error loading model: {e}")
+            return jsonify({"error": "Failed to load the prediction model."}), 500
 
-        # Get the rider names for the specified race
-        race_rider_names = rider_names[race_index]  # Shape: (num_riders,)
+        # Make predictions
+        try:
+            prediction = loaded_model.predict(race_data)
+        except Exception as e:
+            logger.error(f"Prediction error: {e}")
+            return jsonify({"error": "Prediction failed due to model issues."}), 500
 
-        # Combine rider names, predictions, and image paths
+        # Prepare rider predictions
+        race_rider_names = rider_names[race_index]
         rider_prediction = [
             {
                 "name": name,
@@ -54,54 +80,63 @@ def predict():
             }
             for name, pred in zip(race_rider_names, prediction) if name != "PAD"
         ]
-
-        # Sort the predictions
         rider_prediction = sorted(rider_prediction, key=lambda x: x["prediction"], reverse=True)
 
-        return jsonify({"prediction": rider_prediction})
-    
-    except Exception as e:
+        return jsonify({"prediction": rider_prediction}), 200
+
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {e}")
         return jsonify({"error": str(e)}), 500
-    
+    except RetryError as e:
+        logger.error(f"Retries exceeded: {e}")
+        return jsonify({"error": "Failed to load a required file after multiple retries."}), 500
+    except Exception as e:
+        logger.error(f"Unexpected error in /predict: {e}")
+        return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+
 @app.route('/images/<filename>')
 def get_image(filename):
-    if os.path.exists(os.path.join(image_dir, filename)):
-        return send_from_directory(image_dir, filename)
-    else:
-        return send_from_directory(image_dir, "unknown.jpg")
-    
-@app.route('/races')
+    try:
+        filepath = os.path.join(IMAGE_DIR, filename)
+        if not os.path.exists(filepath):
+            logger.warning(f"Image not found: {filename}")
+            filepath = os.path.join(IMAGE_DIR, "unknown.jpg")
+        return send_from_directory(IMAGE_DIR, os.path.basename(filepath))
+    except Exception as e:
+        logger.error(f"Error in /images endpoint: {e}")
+        return jsonify({"error": "Failed to retrieve the requested image."}), 500
+
+@app.route('/races', methods=['GET'])
 def get_races():
-    # Read race names from the file
-    race_names = pd.read_csv(race_names_path)
+    try:
+        # Load race names
+        race_names = load_file_with_retries(RACE_NAMES_PATH, pd.read_csv)
 
-    # Load test data to determine the relevant rows
-    X_test = np.load(data_path, allow_pickle=True)
-    length = len(X_test)
+        # Load test data to determine the relevant rows
+        X_test = load_file_with_retries(DATA_PATH, lambda f: np.load(f, allow_pickle=True))
+        length = len(X_test)
 
-    # Filter the race names to include only the relevant rows
-    race_names = race_names.tail(length)
+        # Filter and format race names
+        race_names = race_names.tail(length)
+        race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
+        race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
 
-    # Format the race names and stages
-    race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
-    race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
+        # Sort races by name and stage
+        race_names['index'] = range(len(race_names))
+        sorted_races = race_names.sort_values(['name', 'stage']).reset_index(drop=True)
 
-    # Create a copy of the original DataFrame to maintain the initial order
-    original_order = race_names.copy()
+        return jsonify(sorted_races.to_dict(orient='records')), 200
 
-    # Sort the races by name and stage
-    sorted_races = race_names.sort_values(['name', 'stage']).reset_index(drop=True)
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {e}")
+        return jsonify({"error": str(e)}), 500
+    except RetryError as e:
+        logger.error(f"Retries exceeded: {e}")
+        return jsonify({"error": "Failed to load a required file after multiple retries."}), 500
+    except Exception as e:
+        logger.error(f"Unexpected error in /races: {e}")
+        return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
 
-    # Map the sorted indices back to the original order
-    original_order['index'] = original_order.apply(
-        lambda row: sorted_races[(sorted_races['name'] == row['name']) & 
-                                 (sorted_races['stage'] == row['stage'])].index[0],
-        axis=1
-    )
-
-    # Convert to dictionary and return in the original order
-    return jsonify(original_order.to_dict(orient='records')), 200
-
-# Run the Flask app
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=15000, debug=True)
+    logger.info(f"Starting Flask server on port {APP_PORT}")
+    app.run(host="0.0.0.0", port=APP_PORT, debug=False)

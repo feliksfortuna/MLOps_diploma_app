@@ -21,3 +21,5 @@ __pycache__
 mlruns/
 
 common/app-frontend
+
+*.ipynb
