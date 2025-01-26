@@ -8,7 +8,7 @@ MLOPS_DIR="$REPO_DIR/mlops"
 COMMON_DIR="$REPO_DIR/common"
 DEVOPS_DIR="$REPO_DIR/devops"
 
-WEBHOOK_SERVER="http://sito.lavbic.net:8000"
+WEBHOOK_SERVER="http://127.0.0.1:8000"
 
 # Logging function
 log_message() {
