@@ -5,9 +5,9 @@ import pickle
 from functools import wraps
 import numpy as np
 import pandas as pd
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, Response
 from flask_cors import CORS
-from prometheus_client import Counter, Histogram, generate_latest
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from tenacity import retry, stop_after_attempt, wait_fixed, RetryError
 
 MODEL_PATH = os.getenv("MODEL_PATH", "/home/bsc/MLOps_diploma_app/devops/model/model.pkl")
@@ -66,7 +66,7 @@ def load_file_with_retries(filepath, loader_fn):
 
 @app.route("/metrics", methods=["GET"])
 def metrics():
-    return generate_latest(), 200
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST), 200
 
 @app.route('/predict', methods=['POST'])
 @track_metrics("predict")

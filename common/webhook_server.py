@@ -1,11 +1,11 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import subprocess
 import os
 import logging
 from logging.handlers import RotatingFileHandler
 from tenacity import retry, stop_after_attempt, wait_fixed, before_sleep_log, RetryError
-from prometheus_client import Summary, generate_latest, Counter
+from prometheus_client import Summary, generate_latest, Counter, CONTENT_TYPE_LATEST
 
 # Configuration
 LOG_FILE = os.getenv('WEBHOOK_LOG_FILE', 'webhook_server.log')
@@ -178,7 +178,7 @@ def observe_devops_deploy():
 
 @app.route("/metrics", methods=["GET"])
 def metrics():
-    return generate_latest(), 200
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST), 200
 
 @app.route('/health', methods=['GET'])
 def health_check():

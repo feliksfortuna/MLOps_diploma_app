@@ -1,6 +1,6 @@
 import logging
 from threading import Thread
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, Response
 from flask_cors import CORS
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
@@ -10,9 +10,7 @@ import numpy as np
 import os
 import json
 import time
-
-# Prometheus imports
-from prometheus_client import Counter, Histogram, generate_latest
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 rider_names_path = "/home/bsc/MLOps_diploma_app/mlops/rider_names_test.npy"
 data_path = "/home/bsc/MLOps_diploma_app/mlops/X_test.npy"
@@ -208,7 +206,7 @@ def predict():
 
 @app.route("/metrics", methods=["GET"])
 def metrics():
-    return generate_latest(), 200
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST), 200
 
 if __name__ == '__main__':
     logging.info("Starting MLOps API on port 5010")
