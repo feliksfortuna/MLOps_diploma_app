@@ -1,14 +1,14 @@
+import os
+import time
+import logging
+import pickle
+from functools import wraps
+import numpy as np
+import pandas as pd
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import pandas as pd
-import numpy as np
-import pickle
-import os
-import logging
-from tenacity import retry, stop_after_attempt, wait_fixed, RetryError
-
-# Prometheus imports
 from prometheus_client import Counter, Histogram, generate_latest
+from tenacity import retry, stop_after_attempt, wait_fixed, RetryError
 
 MODEL_PATH = os.getenv("MODEL_PATH", "/home/bsc/MLOps_diploma_app/devops/model/model.pkl")
 RIDER_NAMES_PATH = os.getenv("RIDER_NAMES_PATH", "/home/bsc/MLOps_diploma_app/devops/rider_names_test.npy")
@@ -17,7 +17,6 @@ IMAGE_DIR = os.getenv("IMAGE_DIR", "/home/bsc/MLOps_diploma_app/common/images")
 RACE_NAMES_PATH = os.getenv("RACE_NAMES_PATH", "/home/bsc/MLOps_diploma_app/common/race_names.csv")
 APP_PORT = int(os.getenv("APP_PORT", 15000))
 
-# Logging configuration
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
@@ -27,6 +26,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://seito.lavbic.net:3002"]}})
 
+# Prometheus metrics
 REQUEST_COUNT = Counter(
     "devops_api_requests_total",
     "Total requests to DevOps API",
@@ -40,8 +40,8 @@ REQUEST_LATENCY = Histogram(
 
 def track_metrics(endpoint_name):
     def decorator(func):
+        @wraps(func)
         def wrapper(*args, **kwargs):
-            import time
             start_time = time.time()
             try:
                 response = func(*args, **kwargs)
@@ -57,7 +57,6 @@ def track_metrics(endpoint_name):
         return wrapper
     return decorator
 
-# Retry decorator for transient errors
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
 def load_file_with_retries(filepath, loader_fn):
     if not os.path.exists(filepath):
@@ -78,18 +77,15 @@ def predict():
         if race_index is None or not isinstance(race_index, int):
             return jsonify({"error": "Invalid or missing 'index'. It must be an integer."}), 400
 
-        # Load rider names and test data
+        # Load data
         rider_names = load_file_with_retries(RIDER_NAMES_PATH, lambda f: np.load(f, allow_pickle=True))
         X_test = load_file_with_retries(DATA_PATH, lambda f: np.load(f, allow_pickle=True))
-
-        # Validate race_index bounds
         if race_index < 0 or race_index >= len(X_test):
             return jsonify({"error": "Index out of bounds."}), 400
 
-        # Get data for the specified race
         race_data = X_test[race_index].astype(np.float32)
 
-        # Load the pickled model
+        # Load model
         try:
             with open(MODEL_PATH, 'rb') as f:
                 loaded_model = pickle.load(f)
@@ -97,14 +93,13 @@ def predict():
             logger.error(f"Error loading model: {e}")
             return jsonify({"error": "Failed to load the prediction model."}), 500
 
-        # Make predictions
+        # Predict
         try:
             prediction = loaded_model.predict(race_data)
         except Exception as e:
             logger.error(f"Prediction error: {e}")
             return jsonify({"error": "Prediction failed due to model issues."}), 500
 
-        # Prepare rider predictions
         race_rider_names = rider_names[race_index]
         rider_prediction = [
             {
@@ -114,7 +109,7 @@ def predict():
             }
             for name, pred in zip(race_rider_names, prediction) if name != "PAD"
         ]
-        rider_prediction = sorted(rider_prediction, key=lambda x: x["prediction"], reverse=True)
+        rider_prediction.sort(key=lambda x: x["prediction"], reverse=True)
 
         return jsonify({"prediction": rider_prediction}), 200
 
@@ -145,10 +140,7 @@ def get_image(filename):
 @track_metrics("races")
 def get_races():
     try:
-        # Load race names
         race_names = load_file_with_retries(RACE_NAMES_PATH, pd.read_csv)
-
-        # Load test data to determine the relevant rows
         X_test = load_file_with_retries(DATA_PATH, lambda f: np.load(f, allow_pickle=True))
         length = len(X_test)
 
