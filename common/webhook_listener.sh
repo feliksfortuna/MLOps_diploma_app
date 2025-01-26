@@ -8,6 +8,8 @@ MLOPS_DIR="$REPO_DIR/mlops"
 COMMON_DIR="$REPO_DIR/common"
 DEVOPS_DIR="$REPO_DIR/devops"
 
+WEBHOOK_SERVER="http://127.0.0.1:8000"
+
 # Logging function
 log_message() {
     echo "$(date): $1" >> "$LOG_FILE"
@@ -34,6 +36,8 @@ redeploy_mlops_backend() {
     log_message "Redeploying MLOps backend..."
     cd "$MLOPS_DIR" || handle_error "Failed to navigate to MLOps directory"
 
+    local start_time=$(date +%s)
+
     log_message "Stopping existing MLOps services..."
     pkill -f "gunicorn.*:5010" || true
     pkill -f "model_deploy_zero_downtime.sh" || true
@@ -55,13 +59,45 @@ redeploy_mlops_backend() {
     fi
 
     log_message "MLOps backend redeployed successfully"
+
+    # Calculate and post MLOps deployment time
+    local end_time=$(date +%s)
+    local elapsed=$(( end_time - start_time ))
+    log_message "MLOps deploy time: ${elapsed}s"
+
+    # POST to the webhook server to record MLOps deploy time
+    curl -X POST "${WEBHOOK_SERVER}/observe_mlops_deploy?time=${elapsed}" \
+         --silent --output /dev/null || log_message "Failed to post MLOps deploy time"
 }
 
 redeploy_devops_backend() {
     log_message "Redeploying DevOps backend..."
     cd "$DEVOPS_DIR" || handle_error "Failed to navigate to DevOps directory"
+
+    local start_time=$(date +%s)
+
     nohup ./redeploy_model.sh > redeploy.log 2>&1 &
+
+    wait_for_redeploy() {
+      for i in {1..20}; do
+        # If the script is done, break
+        if ! pgrep -f "redeploy_model.sh" > /dev/null; then
+          break
+        fi
+        sleep 2
+      done
+    }
+    wait_for_redeploy
+
     log_message "DevOps backend redeployed"
+
+    local end_time=$(date +%s)
+    local elapsed=$(( end_time - start_time ))
+    log_message "DevOps deploy time: ${elapsed}s"
+
+    # POST to the webhook server to record DevOps deploy time
+    curl -X POST "${WEBHOOK_SERVER}/observe_devops_deploy?time=${elapsed}" \
+         --silent --output /dev/null || log_message "Failed to post DevOps deploy time"
 }
 
 # -----------------------------------------------------------------------------

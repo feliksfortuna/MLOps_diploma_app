@@ -7,7 +7,9 @@ import os
 import logging
 from tenacity import retry, stop_after_attempt, wait_fixed, RetryError
 
-# Configuration
+# Prometheus imports
+from prometheus_client import Counter, Histogram, generate_latest
+
 MODEL_PATH = os.getenv("MODEL_PATH", "/home/bsc/MLOps_diploma_app/devops/model/model.pkl")
 RIDER_NAMES_PATH = os.getenv("RIDER_NAMES_PATH", "/home/bsc/MLOps_diploma_app/devops/rider_names_test.npy")
 DATA_PATH = os.getenv("DATA_PATH", "/home/bsc/MLOps_diploma_app/devops/X_test.npy")
@@ -22,23 +24,55 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://seito.lavbic.net:3002"]}})
+
+REQUEST_COUNT = Counter(
+    "devops_api_requests_total",
+    "Total requests to DevOps API",
+    ["endpoint", "method", "status"]
+)
+REQUEST_LATENCY = Histogram(
+    "devops_api_request_latency_seconds",
+    "Request latency for DevOps API",
+    ["endpoint"]
+)
+
+def track_metrics(endpoint_name):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            import time
+            start_time = time.time()
+            try:
+                response = func(*args, **kwargs)
+                status_code = getattr(response, "status_code", 200)
+                REQUEST_COUNT.labels(endpoint=endpoint_name, method=request.method, status=status_code).inc()
+                return response
+            except Exception as e:
+                REQUEST_COUNT.labels(endpoint=endpoint_name, method=request.method, status=500).inc()
+                raise e
+            finally:
+                latency = time.time() - start_time
+                REQUEST_LATENCY.labels(endpoint=endpoint_name).observe(latency)
+        return wrapper
+    return decorator
 
 # Retry decorator for transient errors
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
 def load_file_with_retries(filepath, loader_fn):
-    """Retries file loading in case of transient issues."""
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
     logger.info(f"Loading file: {filepath}")
     return loader_fn(filepath)
 
+@app.route("/metrics", methods=["GET"])
+def metrics():
+    return generate_latest(), 200
+
 @app.route('/predict', methods=['POST'])
+@track_metrics("predict")
 def predict():
     try:
-        # Validate and parse request JSON
         data = request.get_json(force=True)
         race_index = data.get('index')
         if race_index is None or not isinstance(race_index, int):
@@ -95,6 +129,7 @@ def predict():
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
 
 @app.route('/images/<filename>')
+@track_metrics("images")
 def get_image(filename):
     try:
         filepath = os.path.join(IMAGE_DIR, filename)
@@ -107,6 +142,7 @@ def get_image(filename):
         return jsonify({"error": "Failed to retrieve the requested image."}), 500
 
 @app.route('/races', methods=['GET'])
+@track_metrics("races")
 def get_races():
     try:
         # Load race names
@@ -116,15 +152,12 @@ def get_races():
         X_test = load_file_with_retries(DATA_PATH, lambda f: np.load(f, allow_pickle=True))
         length = len(X_test)
 
-        # Filter and format race names
         race_names = race_names.tail(length)
         race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
         race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
 
-        # Sort races by name and stage
         race_names['index'] = range(len(race_names))
         sorted_races = race_names.sort_values(['name', 'stage']).reset_index(drop=True)
-
         return jsonify(sorted_races.to_dict(orient='records')), 200
 
     except FileNotFoundError as e:
@@ -138,5 +171,5 @@ def get_races():
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
 
 if __name__ == "__main__":
-    logger.info(f"Starting Flask server on port {APP_PORT}")
+    logger.info(f"Starting DevOps API on port {APP_PORT}")
     app.run(host="0.0.0.0", port=APP_PORT, debug=False)
