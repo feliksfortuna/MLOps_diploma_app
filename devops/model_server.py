@@ -143,7 +143,6 @@ def get_races():
         race_names = load_file_with_retries(RACE_NAMES_PATH, pd.read_csv)
         X_test = load_file_with_retries(DATA_PATH, lambda f: np.load(f, allow_pickle=True))
         length = len(X_test)
-        # log length
         logger.info(f"Length of X_test: {length}")
 
         race_names = race_names.tail(length)
