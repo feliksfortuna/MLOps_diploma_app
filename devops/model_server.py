@@ -145,7 +145,7 @@ def get_races():
         length = len(X_test)
         logger.info(f"Length of X_test: {length}")
 
-        race_names = race_names.tail(length)
+        race_names = race_names.tail(length-1)
         race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
         race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
 
