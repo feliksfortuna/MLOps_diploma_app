@@ -142,14 +142,13 @@ def get_races():
     try:
         race_names = load_file_with_retries(RACE_NAMES_PATH, pd.read_csv)
         X_test = load_file_with_retries(DATA_PATH, lambda f: np.load(f, allow_pickle=True))
-        length = len(X_test)
+        length = len(X_test) - 1
         logger.info(f"Length of X_test: {length}")
 
-        race_names = race_names.tail(length-1)
+        race_names = race_names.tail(length)
         race_names['name'] = race_names['name'].str.replace('-', ' ').str.title()
         race_names['stage'] = race_names['stage'].str.replace('-', ' ').str.title()
 
-        race_names['index'] = range(len(race_names))
         original_order = race_names.copy()
         sorted_races = race_names.sort_values(['name', 'stage']).reset_index(drop=True)
         original_order['index'] = original_order.apply(
@@ -159,7 +158,7 @@ def get_races():
             ].index[0],
             axis=1
         )
-        return jsonify(sorted_races.to_dict(orient='records')), 200
+        return jsonify(original_order.to_dict(orient='records')), 200
 
     except FileNotFoundError as e:
         logger.error(f"File not found: {e}")
