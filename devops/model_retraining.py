@@ -123,7 +123,7 @@ test_dataset = RaceRegressionDataset(X_test_flat, y_test_flat)
 
 # Optimize hyperparameters
 study = optuna.create_study(direction="minimize")
-study.optimize(objective, n_trials=20)
+study.optimize(objective, n_trials=2)
 
 # Get the best model
 best_trial = study.best_trial
