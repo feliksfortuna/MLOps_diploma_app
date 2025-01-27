@@ -23,3 +23,5 @@ mlruns/
 common/app-frontend
 
 *.ipynb
+
+model_copy
