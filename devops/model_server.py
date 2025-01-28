@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import logging
 import pickle
 from functools import wraps
@@ -7,6 +8,7 @@ import numpy as np
 import pandas as pd
 from flask import Flask, request, jsonify, send_from_directory, Response
 from flask_cors import CORS
+from flask_swagger_ui import get_swaggerui_blueprint
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from tenacity import retry, stop_after_attempt, wait_fixed, RetryError
 
@@ -17,14 +19,253 @@ IMAGE_DIR = os.getenv("IMAGE_DIR", "/home/bsc/MLOps_diploma_app/common/images")
 RACE_NAMES_PATH = os.getenv("RACE_NAMES_PATH", "/home/bsc/MLOps_diploma_app/common/race_names.csv")
 APP_PORT = int(os.getenv("APP_PORT", 15000))
 
+# Swagger configuration
+SWAGGER_URL = '/documentation'
+API_URL = '/static/swagger.json'
+
+swagger_ui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "DevOps API Documentation"
+    }
+)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
+# Create static folder if it doesn't exist
+if not os.path.exists('static'):
+    os.makedirs('static')
+
 app = Flask(__name__)
+app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
 CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://seito.lavbic.net:3002"]}})
+
+# Swagger specification
+swagger_spec = {
+    "openapi": "3.0.0",
+    "info": {
+        "title": "DevOps API",
+        "version": "1.0.0",
+        "description": "API for DevOps predictions and race information"
+    },
+    "servers": [
+        {
+            "url": f"http://seito.lavbic.net:{APP_PORT}",
+            "description": "Production server"
+        }
+    ],
+    "paths": {
+        "/predict": {
+            "post": {
+                "summary": "Make predictions for a specific race",
+                "description": "Predict race outcomes using the trained model",
+                "requestBody": {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "index": {
+                                        "type": "integer",
+                                        "description": "Race index for prediction"
+                                    }
+                                },
+                                "required": ["index"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful prediction",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "prediction": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "description": "Rider name"
+                                                    },
+                                                    "prediction": {
+                                                        "type": "number",
+                                                        "description": "Prediction score"
+                                                    },
+                                                    "image_url": {
+                                                        "type": "string",
+                                                        "description": "URL to rider's image"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/races": {
+            "get": {
+                "summary": "Get race information",
+                "description": "Retrieve information about all races",
+                "responses": {
+                    "200": {
+                        "description": "List of races",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string",
+                                                "description": "Race name"
+                                            },
+                                            "stage": {
+                                                "type": "string",
+                                                "description": "Race stage"
+                                            },
+                                            "index": {
+                                                "type": "integer",
+                                                "description": "Race index"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/images/{filename}": {
+            "get": {
+                "summary": "Get rider image",
+                "description": "Retrieve a rider's image by filename",
+                "parameters": [
+                    {
+                        "name": "filename",
+                        "in": "path",
+                        "required": True,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Image filename"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image file",
+                        "content": {
+                            "image/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/metrics": {
+            "get": {
+                "summary": "Get Prometheus metrics",
+                "description": "Retrieve Prometheus metrics for monitoring",
+                "responses": {
+                    "200": {
+                        "description": "Prometheus metrics",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+# Write Swagger specification to file
+with open('static/swagger.json', 'w') as f:
+    json.dump(swagger_spec, f)
 
 # Prometheus metrics
 REQUEST_COUNT = Counter(

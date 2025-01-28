@@ -1,7 +1,6 @@
-import logging
-from threading import Thread
 from flask import Flask, request, jsonify, send_from_directory, Response
 from flask_cors import CORS
+from flask_swagger_ui import get_swaggerui_blueprint
 import requests
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 import data_process
@@ -10,6 +9,8 @@ import numpy as np
 import os
 import json
 import time
+from threading import Thread
+import logging
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 rider_names_path = "/home/bsc/MLOps_diploma_app/mlops/rider_names_test.npy"
@@ -37,6 +38,19 @@ PREDICT_LATENCY = Histogram(
     "Latency of predict calls in MLOps"
 )
 
+# Swagger configuration
+SWAGGER_URL = '/documentation'
+API_URL = '/static/swagger.json'
+
+# Create Swagger UI Blueprint
+swagger_ui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "MLOps API Documentation"
+    }
+)
+
 logging.basicConfig(
     filename="server.log",
     level=logging.DEBUG,
@@ -45,7 +59,210 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
 CORS(app, resources={r"/*": {"origins": ["http://seito.lavbic.net:3001", "https://ultimate-krill-officially.ngrok-free.app"]}})
+
+# Create static folder if it doesn't exist
+if not os.path.exists('static'):
+    os.makedirs('static')
+
+# Swagger specification
+swagger_spec = {
+    "openapi": "3.0.0",
+    "info": {
+        "title": "MLOps API",
+        "version": "1.0.0",
+        "description": "API for MLOps deployment and predictions"
+    },
+    "servers": [
+        {
+            "url": "http://seito.lavbic.net:5010",
+            "description": "Production server"
+        }
+    ],
+    "paths": {
+        "/redeploy": {
+            "post": {
+                "summary": "Trigger model redeployment",
+                "requestBody": {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "index": {
+                                        "type": "integer",
+                                        "description": "Index for redeployment"
+                                    }
+                                },
+                                "required": ["index"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful redeployment",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/predict": {
+            "post": {
+                "summary": "Make predictions",
+                "requestBody": {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "index": {
+                                        "type": "integer",
+                                        "description": "Index for prediction"
+                                    }
+                                },
+                                "required": ["index"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful prediction",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "prediction": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "prediction": {
+                                                        "type": "number"
+                                                    },
+                                                    "image_url": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/races": {
+            "get": {
+                "summary": "Get race information",
+                "responses": {
+                    "200": {
+                        "description": "List of races",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "stage": {
+                                                "type": "string"
+                                            },
+                                            "index": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/images/{filename}": {
+            "get": {
+                "summary": "Get rider image",
+                "parameters": [
+                    {
+                        "name": "filename",
+                        "in": "path",
+                        "required": True,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Image filename"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image file",
+                        "content": {
+                            "image/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/metrics": {
+            "get": {
+                "summary": "Get Prometheus metrics",
+                "responses": {
+                    "200": {
+                        "description": "Prometheus metrics",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+# Write Swagger specification to file
+with open('static/swagger.json', 'w') as f:
+    json.dump(swagger_spec, f)
 
 @retry(
     stop=stop_after_attempt(5),
